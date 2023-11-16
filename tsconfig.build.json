@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "outDir": "dist",
+  },
+  "include": ["src"],
+  "tsc-alias": {
+    "resolveFullPaths": true
+  }
+}
