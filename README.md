@@ -108,6 +108,18 @@ Expect the type to be `undefined`.
 
 Expect the type to be `null`, `undefined` or `null | undefined`.
 
+### `expect<T>(x?: T).toBeBoolean()`
+
+Expect the type to be `true`, `false` or `boolean`.
+
+### `expect<T>(x?: T).toBeTrue()`
+
+Expect the type to be `true`.
+
+### `expect<T>(x?: T).toBeFalse()`
+
+Expect the type to be `false`.
+
 ### `expect<T>(x?: T).toExtend<U>(y?: U)`
 
 Expect the type to extend the given type.

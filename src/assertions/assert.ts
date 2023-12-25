@@ -1,9 +1,12 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { registerToBeBoolean } from './impl/toBeBoolean';
+import { registerToBeFalse } from './impl/toBeFalse';
 import { registerToBeNever } from './impl/toBeNever';
 import { registerToBeNull } from './impl/toBeNull';
 import { registerToBeNullish } from './impl/toBeNullish';
+import { registerToBeTrue } from './impl/toBeTrue';
 import { registerToBeUndefined } from './impl/toBeUndefined';
 import { registerToCover } from './impl/toCover';
 import { registerToEqual } from './impl/toEqual';
@@ -13,9 +16,12 @@ import { registerToStrictExtend } from './impl/toStrictExtend';
 import { registerToThrow } from './impl/toThrow';
 
 import type { NotToBeAny, ToBeAny } from './impl/toBeAny';
+import type { NotToBeBoolean, ToBeBoolean } from './impl/toBeBoolean';
+import type { NotToBeFalse, ToBeFalse } from './impl/toBeFalse';
 import type { NotToBeNever, ToBeNever } from './impl/toBeNever';
 import type { NotToBeNull, ToBeNull } from './impl/toBeNull';
 import type { NotToBeNullish, ToBeNullish } from './impl/toBeNullish';
+import type { NotToBeTrue, ToBeTrue } from './impl/toBeTrue';
 import type { NotToBeUndefined, ToBeUndefined } from './impl/toBeUndefined';
 import type { ToCover } from './impl/toCover';
 import type { NotToEqual, ToEqual } from './impl/toEqual';
@@ -32,6 +38,9 @@ registerToBeNever();
 registerToBeNull();
 registerToBeNullish();
 registerToBeUndefined();
+registerToBeBoolean();
+registerToBeTrue();
+registerToBeFalse();
 registerToExtend();
 registerToStrictExtend();
 registerToCover();
@@ -115,6 +124,42 @@ export interface Expect<T> {
    * ```
    */
   toBeNullish: ToBeNullish<T>;
+  /**
+   * Expect a type to be `true`, `false`, or `boolean`.
+   *
+   * @example
+   * ```typescript
+   * expect<'foo'>().toBeBoolean(); // fail
+   * expect<true>().toBeBoolean(); // pass
+   * expect<false>().toBeBoolean(); // pass
+   * expect<boolean>().toBeBoolean(); // pass
+   * ```
+   */
+  toBeBoolean: ToBeBoolean<T>;
+  /**
+   * Expect a type to be `true`.
+   *
+   * @example
+   * ```typescript
+   * expect<'foo'>().toBeTrue(); // fail
+   * expect<true>().toBeTrue(); // pass
+   * expect<false>().toBeTrue(); // fail
+   * expect<boolean>().toBeTrue(); // fail
+   * ```
+   */
+  toBeTrue: ToBeTrue<T>;
+  /**
+   * Expect a type to be `false`.
+   *
+   * @example
+   * ```typescript
+   * expect<'foo'>().toBeFalse(); // fail
+   * expect<true>().toBeFalse(); // fail
+   * expect<false>().toBeFalse(); // pass
+   * expect<boolean>().toBeFalse(); // fail
+   * ```
+   */
+  toBeFalse: ToBeFalse<T>;
 
   /**
    * Expect a type to extend the given type.
@@ -252,6 +297,42 @@ export interface ExpectNot<T> {
    * ```
    */
   toBeNullish: NotToBeNullish<T>;
+  /**
+   * Expect a type not to be `true`, `false`, or `boolean`.
+   *
+   * @example
+   * ```typescript
+   * expect<'foo'>().not.toBeBoolean(); // pass
+   * expect<true>().not.toBeBoolean(); // fail
+   * expect<false>().not.toBeBoolean(); // fail
+   * expect<boolean>().not.toBeBoolean(); // fail
+   * ```
+   */
+  toBeBoolean: NotToBeBoolean<T>;
+  /**
+   * Expect a type not to be `true`.
+   *
+   * @example
+   * ```typescript
+   * expect<'foo'>().not.toBeTrue(); // pass
+   * expect<true>().not.toBeTrue(); // fail
+   * expect<false>().not.toBeTrue(); // pass
+   * expect<boolean>().not.toBeTrue(); // pass
+   * ```
+   */
+  toBeTrue: NotToBeTrue<T>;
+  /**
+   * Expect a type not to be `false`.
+   *
+   * @example
+   * ```typescript
+   * expect<'foo'>().not.toBeFalse(); // pass
+   * expect<true>().not.toBeFalse(); // pass
+   * expect<false>().not.toBeFalse(); // fail
+   * expect<boolean>().not.toBeFalse(); // pass
+   * ```
+   */
+  toBeFalse: NotToBeFalse<T>;
 
   /**
    * Expect a type not to extend the given type.

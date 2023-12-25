@@ -81,14 +81,14 @@ export type Matcher = (
  * declare module 'typroof' {
  *   interface Expect<T> {
  *     // This mixes `toExtendOneOfTwo` into `expect`, i.e. `expect(...).toExtendOneOfTwo()`.
- *     [toExtendOneOfTwo]: <U, V>() => ExtendsOneOfTwo<T, U, V>;
+ *     toExtendOneOfTwo: <U, V>() => ExtendsOneOfTwo<T, U, V>;
  *     //                              ^ You can use a specific type as the return type,
  *     //                                which can be accessed in the matcher function.
  *   }
  *
  *   // If you want to mix `toExtendOneOfTwo` into `expect.not`, you can do this:
  *   interface ExpectNot<T> {
- *     [toExtendOneOfTwo]: <U, V>() => NotExtendsOneOfTwo<T, U, V>;
+ *     toExtendOneOfTwo: <U, V>() => NotExtendsOneOfTwo<T, U, V>;
  *   }
  * }
  *
