@@ -1,32 +1,32 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { registerToBe } from './impl/toBe';
 import { registerToBeNever } from './impl/toBeNever';
 import { registerToBeNull } from './impl/toBeNull';
 import { registerToBeNullish } from './impl/toBeNullish';
 import { registerToBeUndefined } from './impl/toBeUndefined';
 import { registerToCover } from './impl/toCover';
+import { registerToEqual } from './impl/toEqual';
 import { registerToExtend } from './impl/toExtend';
 import { registerToStrictCover } from './impl/toStrictCover';
 import { registerToStrictExtend } from './impl/toStrictExtend';
 import { registerToThrow } from './impl/toThrow';
 
-import type { NotToBe, ToBe, toBe } from './impl/toBe';
-import type { NotToBeAny, ToBeAny, toBeAny } from './impl/toBeAny';
-import type { NotToBeNever, ToBeNever, toBeNever } from './impl/toBeNever';
-import type { NotToBeNull, ToBeNull, toBeNull } from './impl/toBeNull';
-import type { NotToBeNullish, ToBeNullish, toBeNullish } from './impl/toBeNullish';
-import type { NotToBeUndefined, ToBeUndefined, toBeUndefined } from './impl/toBeUndefined';
-import type { ToCover, toCover } from './impl/toCover';
-import type { ToExtend, toExtend } from './impl/toExtend';
-import type { ToStrictCover, toStrictCover } from './impl/toStrictCover';
-import type { ToStrictExtend, toStrictExtend } from './impl/toStrictExtend';
-import type { NotToThrow, ToThrow, toThrow } from './impl/toThrow';
+import type { NotToBeAny, ToBeAny } from './impl/toBeAny';
+import type { NotToBeNever, ToBeNever } from './impl/toBeNever';
+import type { NotToBeNull, ToBeNull } from './impl/toBeNull';
+import type { NotToBeNullish, ToBeNullish } from './impl/toBeNullish';
+import type { NotToBeUndefined, ToBeUndefined } from './impl/toBeUndefined';
+import type { ToCover } from './impl/toCover';
+import type { NotToEqual, ToEqual } from './impl/toEqual';
+import type { ToExtend } from './impl/toExtend';
+import type { ToStrictCover } from './impl/toStrictCover';
+import type { ToStrictExtend } from './impl/toStrictExtend';
+import type { NotToThrow, ToThrow } from './impl/toThrow';
 import type { Project } from 'ts-morph';
 
 /* Register all assertions */
-registerToBe();
+registerToEqual();
 registerToCover();
 registerToBeNever();
 registerToBeNull();
@@ -51,19 +51,19 @@ export interface Expect<T> {
    * expect<IsNumber<42>>().toThrow(); // fail
    * ```
    */
-  [toThrow]: ToThrow;
+  toThrow: ToThrow;
 
   /**
-   * Expect a type to be the same as the given type.
+   * Expect a type to be equal to the given type.
    *
    * @example
    * ```typescript
-   * expect<'foo'>().toBe<'foo'>(); // pass
-   * expect<'foo'>().toBe<'bar'>(); // fail
-   * expect<'foo'>().toBe<'foo' | 'bar'>(); // fail
+   * expect<'foo'>().toEqual<'foo'>(); // pass
+   * expect<'foo'>().toEqual<'bar'>(); // fail
+   * expect<'foo'>().toEqual<'foo' | 'bar'>(); // fail
    * ```
    */
-  [toBe]: ToBe<T>;
+  toEqual: ToEqual<T>;
   /**
    * Expect a type to be `any`.
    *
@@ -73,7 +73,7 @@ export interface Expect<T> {
    * expect<any>().toBeAny(); // pass
    * ```
    */
-  [toBeAny]: ToBeAny<T>;
+  toBeAny: ToBeAny<T>;
   /**
    * Expect a type to be `never`.
    *
@@ -83,7 +83,7 @@ export interface Expect<T> {
    * expect<never>().toBeNever(); // pass
    * ```
    */
-  [toBeNever]: ToBeNever<T>;
+  toBeNever: ToBeNever<T>;
   /**
    * Expect a type to be `null`.
    *
@@ -93,7 +93,7 @@ export interface Expect<T> {
    * expect<null>().toBeNull(); // pass
    * ```
    */
-  [toBeNull]: ToBeNull<T>;
+  toBeNull: ToBeNull<T>;
   /**
    * Expect a type to be `undefined`.
    *
@@ -103,7 +103,7 @@ export interface Expect<T> {
    * expect<undefined>().toBeUndefined(); // pass
    * ```
    */
-  [toBeUndefined]: ToBeUndefined<T>;
+  toBeUndefined: ToBeUndefined<T>;
   /**
    * Expect a type to be `null` or `undefined`.
    *
@@ -114,7 +114,7 @@ export interface Expect<T> {
    * expect<undefined>().toBeNullish(); // pass
    * ```
    */
-  [toBeNullish]: ToBeNullish<T>;
+  toBeNullish: ToBeNullish<T>;
 
   /**
    * Expect a type to extend the given type.
@@ -129,7 +129,7 @@ export interface Expect<T> {
    * expect<'foo'>().toExtend<any>(); // pass
    * ```
    */
-  [toExtend]: ToExtend<T>;
+  toExtend: ToExtend<T>;
   /**
    * Expect a type to strictly extend the given type (i.e. both types should not be `never` or `any`).
    *
@@ -143,7 +143,7 @@ export interface Expect<T> {
    * expect<'foo'>().toStrictExtend<any>(); // fail
    * ```
    */
-  [toStrictExtend]: ToStrictExtend<T>;
+  toStrictExtend: ToStrictExtend<T>;
 
   /**
    * Expect a type to cover the given type (i.e. the given type should extend the type).
@@ -158,7 +158,7 @@ export interface Expect<T> {
    * expect<any>().toCover<'foo'>(); // pass
    * ```
    */
-  [toCover]: ToCover<T>;
+  toCover: ToCover<T>;
   /**
    * Expect a type to strictly cover the given type (i.e. both types should not be `never` or `any`).
    *
@@ -172,7 +172,7 @@ export interface Expect<T> {
    * expect<any>().toStrictCover<'foo'>(); // fail
    * ```
    */
-  [toStrictCover]: ToStrictCover<T>;
+  toStrictCover: ToStrictCover<T>;
 }
 
 export interface ExpectNot<T> {
@@ -188,19 +188,19 @@ export interface ExpectNot<T> {
    * expect<IsNumber<42>>().not.toThrow(); // pass
    * ```
    */
-  [toThrow]: NotToThrow;
+  toThrow: NotToThrow;
 
   /**
    * Expect a type not to be the same as the given type.
    *
    * @example
    * ```typescript
-   * expect<'foo'>().not.toBe<'foo'>(); // fail
-   * expect<'foo'>().not.toBe<'bar'>(); // pass
-   * expect<'foo'>().not.toBe<'foo' | 'bar'>(); // pass
+   * expect<'foo'>().not.toEqual<'foo'>(); // fail
+   * expect<'foo'>().not.toEqual<'bar'>(); // pass
+   * expect<'foo'>().not.toEqual<'foo' | 'bar'>(); // pass
    * ```
    */
-  [toBe]: NotToBe<T>;
+  toEqual: NotToEqual<T>;
   /**
    * Expect a type not to be `any`.
    *
@@ -210,7 +210,7 @@ export interface ExpectNot<T> {
    * expect<any>().not.toBeAny(); // fail
    * ```
    */
-  [toBeAny]: NotToBeAny<T>;
+  toBeAny: NotToBeAny<T>;
   /**
    * Expect a type not to be `never`.
    *
@@ -220,7 +220,7 @@ export interface ExpectNot<T> {
    * expect<never>().not.toBeNever(); // fail
    * ```
    */
-  [toBeNever]: NotToBeNever<T>;
+  toBeNever: NotToBeNever<T>;
   /**
    * Expect a type not to be `null`.
    *
@@ -230,7 +230,7 @@ export interface ExpectNot<T> {
    * expect<null>().not.toBeNull(); // fail
    * ```
    */
-  [toBeNull]: NotToBeNull<T>;
+  toBeNull: NotToBeNull<T>;
   /**
    * Expect a type not to be `undefined`.
    *
@@ -240,7 +240,7 @@ export interface ExpectNot<T> {
    * expect<undefined>().not.toBeUndefined(); // fail
    * ```
    */
-  [toBeUndefined]: NotToBeUndefined<T>;
+  toBeUndefined: NotToBeUndefined<T>;
   /**
    * Expect a type not to be `null` or `undefined`.
    *
@@ -251,7 +251,7 @@ export interface ExpectNot<T> {
    * expect<undefined>().not.toBeNullish(); // fail
    * ```
    */
-  [toBeNullish]: NotToBeNullish<T>;
+  toBeNullish: NotToBeNullish<T>;
 
   /**
    * Expect a type not to extend the given type.
@@ -266,7 +266,7 @@ export interface ExpectNot<T> {
    * expect<'foo'>().not.toExtend<any>(); // fail
    * ```
    */
-  [toExtend]: ToExtend<T>;
+  toExtend: ToExtend<T>;
   /**
    * Expect a type not to strictly extend the given type (i.e. both types should not be `never` or `any`).
    *
@@ -280,7 +280,7 @@ export interface ExpectNot<T> {
    * expect<'foo'>().not.toStrictExtend<any>(); // pass
    * ```
    */
-  [toStrictExtend]: ToStrictExtend<T>;
+  toStrictExtend: ToStrictExtend<T>;
 
   /**
    * Expect a type not to cover the given type (i.e. the given type should not extend the type).
@@ -295,7 +295,7 @@ export interface ExpectNot<T> {
    * expect<any>().not.toCover<'foo'>(); // fail
    * ```
    */
-  [toCover]: ToCover<T>;
+  toCover: ToCover<T>;
   /**
    * Expect a type not to strictly cover the given type (i.e. both types should not be `never` or `any`).
    *
@@ -309,7 +309,7 @@ export interface ExpectNot<T> {
    * expect<any>().not.toStrictCover<'foo'>(); // pass
    * ```
    */
-  [toStrictCover]: ToStrictCover<T>;
+  toStrictCover: ToStrictCover<T>;
 }
 
 /**
@@ -319,7 +319,7 @@ export interface ExpectNot<T> {
  * ```typescript
  * import { expect } from 'typroof';
  *
- * expect<'foo'>().toBe<'foo'>(); // pass
+ * expect<'foo'>().toEqual<'foo'>(); // pass
  * expect<'foo'>().toExtend<number>(); // fail
  * expect<'foo'>().not.toExtend<number>(); // pass
  * ```

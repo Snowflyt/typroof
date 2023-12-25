@@ -30,7 +30,7 @@ const cli = meow(
         ✔ Append
         ❯ Prepend (1)
           ✘ should prepend a string to another
-            × 12:12 Expect Prepend<'foo', 'bar'> to be "foobar", but got "barfoo".
+            × 12:12 Expect Prepend<'foo', 'bar'> to equal "foobar", but got "barfoo".
       
        Test Files  1 failed (1)
             Tests  1 failed | 1 passed (2)
