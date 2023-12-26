@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import meow from 'meow';
 
-import { createTyproofProject, formatGroupResult, formatSummary } from './test';
+import { createTyproofProject, formatGroupResult, formatSummary, summary } from './test';
 
 const cli = meow(
   `
@@ -65,6 +65,11 @@ for (const result of results) {
   console.log(formatGroupResult(result.rootGroupResult));
   console.log();
 }
-console.log(
-  formatSummary({ groups: results.map((r) => r.rootGroupResult), startedAt, finishedAt }),
-);
+
+const groups = results.map((r) => r.rootGroupResult);
+console.log(formatSummary({ groups, startedAt, finishedAt }));
+
+if (summary(groups).testFailed > 0) {
+  console.log();
+  process.exit(1);
+}
