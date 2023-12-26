@@ -1,3 +1,5 @@
+// @ts-check
+
 /* eslint-env node */
 
 /** @type {import('eslint').Linter.Config} */
@@ -15,7 +17,7 @@ const config = {
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.eslint.json', './tsconfig.node.json'],
+    project: './tsconfig.eslint.json',
     tsconfigRootDir: __dirname,
   },
   plugins: ['sort-destructure-keys'],
@@ -31,9 +33,7 @@ const config = {
     'import/order': [
       'error',
       {
-        alphabetize: {
-          order: 'asc',
-        },
+        alphabetize: { order: 'asc' },
         groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
         'newlines-between': 'always',
       },
