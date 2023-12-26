@@ -2,7 +2,7 @@
   "name": "typroof",
   "version": "0.1.2",
   "private": true,
-  "description": "Test your TypeScript type definitions",
+  "description": "Test your TypeScript type definitions elegantly",
   "keywords": [
     "typescript",
     "typroof",
