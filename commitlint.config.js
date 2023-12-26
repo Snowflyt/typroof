@@ -2,10 +2,10 @@
 
 /**
  * @typedef {object} Parsed
- * @property {string | null} emoji
- * @property {string | null} type
- * @property {string | null} scope
- * @property {string | null} subject
+ * @property {?string} emoji
+ * @property {?string} type
+ * @property {?string} scope
+ * @property {?string} subject
  */
 
 const emojiEnum = /** @type {const} */ ([
