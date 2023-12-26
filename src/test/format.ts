@@ -73,6 +73,25 @@ export const formatGroupResult = (group: GroupResult, indent = 0): string => {
 };
 
 /**
+ * Get a summary of the test results.
+ * @param groups The groups of test results.
+ * @returns
+ */
+export const summary = (groups: readonly GroupResult[]) => {
+  let testFileFailed = 0;
+  let testCount = 0;
+  let testFailed = 0;
+
+  for (const group of groups) {
+    if (groupHasFails(group)) testFileFailed++;
+    testCount += groupTestCount(group);
+    testFailed += groupFailCount(group);
+  }
+
+  return { testFileCount: groups.length, testFileFailed, testCount, testFailed };
+};
+
+/**
  * Format a summary of the test results.
  * @param options Options for formatting the summary.
  * @returns
@@ -86,15 +105,7 @@ export const formatSummary = (options: {
 
   let result = '';
 
-  let testFileFailed = 0;
-  let testCount = 0;
-  let testFailed = 0;
-
-  for (const group of groups) {
-    if (groupHasFails(group)) testFileFailed++;
-    testCount += groupTestCount(group);
-    testFailed += groupFailCount(group);
-  }
+  const { testCount, testFailed, testFileFailed } = summary(groups);
 
   result +=
     chalk.dim(' Test Files  ') +

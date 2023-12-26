@@ -1,4 +1,4 @@
-export { formatGroupResult, formatSummary } from './format';
+export { formatGroupResult, formatSummary, summary } from './format';
 export { createTyproofProject } from './project';
 export { describe, it, test } from './test';
 
