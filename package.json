@@ -31,7 +31,7 @@
     "prebuild": "npm run clean",
     "build": "tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json && cpy ./dist/**/* ./build/ && rimraf dist && prettier --loglevel=silent --print-width 80 --write ./build/ && cpy ./package.json ./build/ && replace-in-file \"  \\\"private\\\": true,\" \"\" ./build/package.json && prettier --loglevel=silent --print-width 80 --write ./build/package.json && cpy ./README.md ./build/ && cpy ./LICENSE ./build/ && cpy ./screenshot.png ./build/",
     "clean": "rimraf dist build",
-    "format": "prettier --write {src,test}/**/*.{js,ts,json} *.{js,cjs,mjs,ts,cts,mts,json,md}",
+    "format": "prettier --write {src,test}/**/*.{js,ts,json} *.{js,cjs,mjs,ts,cts,mts,json,md} && prettier --write --parser json .hintrc",
     "lint": "eslint {src,test}/**/*.{js,ts} *.{js,cjs,mjs,ts,cts,mts}",
     "lint:fix": "eslint --fix {src,test}/**/*.{js,ts} *.{js,cjs,mjs,ts,cts,mts}",
     "prepare": "husky install",
