@@ -1,5 +1,3 @@
-/* eslint-disable no-irregular-whitespace */
-
 import path from 'node:path';
 
 import { Project } from 'ts-morph';
@@ -17,8 +15,8 @@ import type { Diagnostic, ProjectOptions, SourceFile, Symbol, ts } from 'ts-morp
  * An extension of the ts-morph `Project`.
  */
 export interface TyproofProject extends Project {
-  readonly cachedPreEmitDiagnostics: Diagnostic<ts.Diagnostic>[];
-  readonly testFiles: SourceFile[];
+  readonly cachedPreEmitDiagnostics: readonly Diagnostic<ts.Diagnostic>[];
+  readonly testFiles: readonly SourceFile[];
 
   // eslint-disable-next-line @typescript-eslint/ban-types
   readonly getExpectSymbol: () => Symbol;
@@ -41,11 +39,13 @@ export interface TyproofProjectOptions {
    * @default path.join(process.cwd(), 'tsconfig.json')
    */
   tsConfigFilePath?: string;
+  /* eslint-disable no-irregular-whitespace */
   /**
    * File glob or globs to add to the project.
    * @default ['**​/*.proof.{ts,tsx}', 'proof/**​/*.{ts,tsx}']
    */
-  testFiles?: string | string[];
+  /* eslint-enable no-irregular-whitespace */
+  testFiles?: string | readonly string[];
   /**
    * Options to pass to the ts-morph project.
    */

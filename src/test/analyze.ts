@@ -29,7 +29,7 @@ export interface Assertion {
 export interface AnalyzeResult {
   project: TyproofProject;
   sourceFile: SourceFile;
-  diagnostics: Diagnostic<ts.Diagnostic>[];
+  diagnostics: readonly Diagnostic<ts.Diagnostic>[];
   rootGroup: Group;
 }
 

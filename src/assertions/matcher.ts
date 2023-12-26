@@ -33,7 +33,7 @@ export interface MatcherMeta {
   /**
    * Pre emit diagnostics of the source file.
    */
-  diagnostics: Diagnostic<ts.Diagnostic>[];
+  diagnostics: readonly Diagnostic<ts.Diagnostic>[];
   /**
    * Whether `expect` is called with `expect.not`.
    */
