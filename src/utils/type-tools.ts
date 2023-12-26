@@ -13,7 +13,8 @@ export type IsNullish<T> = IsUndefined<T> extends true
   : IsNull<T> extends true
   ? true
   : Equals<T, null | undefined>;
-export type IsBoolean<T> = T extends boolean ? true : false;
+
+export type MatchesBoolean<T> = T extends boolean ? true : false;
 export type IsTrue<T> = Equals<T, true>;
 export type IsFalse<T> = Equals<T, false>;
 

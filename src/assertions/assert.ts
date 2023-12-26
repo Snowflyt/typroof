@@ -1,7 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { registerToBeBoolean } from './impl/toBeBoolean';
 import { registerToBeFalse } from './impl/toBeFalse';
 import { registerToBeNever } from './impl/toBeNever';
 import { registerToBeNull } from './impl/toBeNull';
@@ -11,12 +10,12 @@ import { registerToBeUndefined } from './impl/toBeUndefined';
 import { registerToCover } from './impl/toCover';
 import { registerToEqual } from './impl/toEqual';
 import { registerToExtend } from './impl/toExtend';
+import { registerToMatchBoolean } from './impl/toMatchBoolean';
 import { registerToStrictCover } from './impl/toStrictCover';
 import { registerToStrictExtend } from './impl/toStrictExtend';
 import { registerToThrow } from './impl/toThrow';
 
 import type { NotToBeAny, ToBeAny } from './impl/toBeAny';
-import type { NotToBeBoolean, ToBeBoolean } from './impl/toBeBoolean';
 import type { NotToBeFalse, ToBeFalse } from './impl/toBeFalse';
 import type { NotToBeNever, ToBeNever } from './impl/toBeNever';
 import type { NotToBeNull, ToBeNull } from './impl/toBeNull';
@@ -26,6 +25,7 @@ import type { NotToBeUndefined, ToBeUndefined } from './impl/toBeUndefined';
 import type { ToCover } from './impl/toCover';
 import type { NotToEqual, ToEqual } from './impl/toEqual';
 import type { ToExtend } from './impl/toExtend';
+import type { NotToMatchBoolean, ToMatchBoolean } from './impl/toMatchBoolean';
 import type { ToStrictCover } from './impl/toStrictCover';
 import type { ToStrictExtend } from './impl/toStrictExtend';
 import type { NotToThrow, ToThrow } from './impl/toThrow';
@@ -38,7 +38,7 @@ registerToBeNever();
 registerToBeNull();
 registerToBeNullish();
 registerToBeUndefined();
-registerToBeBoolean();
+registerToMatchBoolean();
 registerToBeTrue();
 registerToBeFalse();
 registerToExtend();
@@ -125,17 +125,25 @@ export interface Expect<T> {
    */
   toBeNullish: ToBeNullish<T>;
   /**
+   * @deprecated Use {@link toMatchBoolean} instead.
+   *
+   * @since 0.1.1
+   */
+  toBeBoolean: ToMatchBoolean<T>;
+  /**
    * Expect a type to be `true`, `false`, or `boolean`.
    *
    * @example
    * ```typescript
-   * expect<'foo'>().toBeBoolean(); // fail
-   * expect<true>().toBeBoolean(); // pass
-   * expect<false>().toBeBoolean(); // pass
-   * expect<boolean>().toBeBoolean(); // pass
+   * expect<'foo'>().toMatchBoolean(); // fail
+   * expect<true>().toMatchBoolean(); // pass
+   * expect<false>().toMatchBoolean(); // pass
+   * expect<boolean>().toMatchBoolean(); // pass
    * ```
+   *
+   * @since 0.1.2
    */
-  toBeBoolean: ToBeBoolean<T>;
+  toMatchBoolean: ToMatchBoolean<T>;
   /**
    * Expect a type to be `true`.
    *
@@ -146,6 +154,8 @@ export interface Expect<T> {
    * expect<false>().toBeTrue(); // fail
    * expect<boolean>().toBeTrue(); // fail
    * ```
+   *
+   * @since 0.1.1
    */
   toBeTrue: ToBeTrue<T>;
   /**
@@ -158,6 +168,8 @@ export interface Expect<T> {
    * expect<false>().toBeFalse(); // pass
    * expect<boolean>().toBeFalse(); // fail
    * ```
+   *
+   * @since 0.1.1
    */
   toBeFalse: ToBeFalse<T>;
 
@@ -298,17 +310,25 @@ export interface ExpectNot<T> {
    */
   toBeNullish: NotToBeNullish<T>;
   /**
+   * @deprecated Use {@link toMatchBoolean} instead.
+   *
+   * @since 0.1.1
+   */
+  toBeBoolean: NotToMatchBoolean<T>;
+  /**
    * Expect a type not to be `true`, `false`, or `boolean`.
    *
    * @example
    * ```typescript
-   * expect<'foo'>().not.toBeBoolean(); // pass
-   * expect<true>().not.toBeBoolean(); // fail
-   * expect<false>().not.toBeBoolean(); // fail
-   * expect<boolean>().not.toBeBoolean(); // fail
+   * expect<'foo'>().not.toMatchBoolean(); // pass
+   * expect<true>().not.toMatchBoolean(); // fail
+   * expect<false>().not.toMatchBoolean(); // fail
+   * expect<boolean>().not.toMatchBoolean(); // fail
    * ```
+   *
+   * @since 0.1.2
    */
-  toBeBoolean: NotToBeBoolean<T>;
+  toMatchBoolean: NotToMatchBoolean<T>;
   /**
    * Expect a type not to be `true`.
    *
@@ -319,6 +339,8 @@ export interface ExpectNot<T> {
    * expect<false>().not.toBeTrue(); // pass
    * expect<boolean>().not.toBeTrue(); // pass
    * ```
+   *
+   * @since 0.1.1
    */
   toBeTrue: NotToBeTrue<T>;
   /**
@@ -331,6 +353,8 @@ export interface ExpectNot<T> {
    * expect<false>().not.toBeFalse(); // fail
    * expect<boolean>().not.toBeFalse(); // pass
    * ```
+   *
+   * @since 0.1.1
    */
   toBeFalse: NotToBeFalse<T>;
 

@@ -128,7 +128,7 @@ Expect the type to be `undefined`.
 
 Expect the type to be `null`, `undefined` or `null | undefined`.
 
-### `.toBeBoolean()`
+### `.toMatchBoolean()`
 
 Expect the type to be `true`, `false` or `boolean`.
 
