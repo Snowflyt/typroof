@@ -1,6 +1,6 @@
 {
   "name": "typroof",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Test your TypeScript type definitions",
   "keywords": [
@@ -31,9 +31,10 @@
     "prebuild": "npm run clean",
     "build": "tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json && cpy ./dist/**/* ./build/ && rimraf dist && prettier --loglevel=silent --print-width 80 --write ./build/ && cpy ./package.json ./build/ && replace-in-file \"  \\\"private\\\": true,\" \"\" ./build/package.json && prettier --loglevel=silent --print-width 80 --write ./build/package.json && cpy ./README.md ./build/ && cpy ./LICENSE ./build/ && cpy ./screenshot.png ./build/",
     "clean": "rimraf dist build",
-    "format": "prettier --write {src,test}/**/*.{json,js,ts}",
-    "lint": "eslint {src,test}/**/*.{js,ts}",
-    "lint:fix": "eslint --fix {src,test}/**/*.{js,ts}",
+    "format": "prettier --write {src,test}/**/*.{js,ts,json} *.{js,cjs,mjs,ts,cts,mts,json,md}",
+    "lint": "eslint {src,test}/**/*.{js,ts} *.{js,cjs,mjs,ts,cts,mts}",
+    "lint:fix": "eslint --fix {src,test}/**/*.{js,ts} *.{js,cjs,mjs,ts,cts,mts}",
+    "prepare": "husky install",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
     "test:ui": "vitest --ui --coverage.enabled=true",
@@ -46,9 +47,10 @@
     "ts-morph": "^21.0.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^18.4.3",
     "@types/node": "^20.10.5",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/parser": "^6.16.0",
     "@vitest/coverage-v8": "^1.1.0",
     "@vitest/ui": "^1.1.0",
     "cpy-cli": "^5.0.0",
@@ -58,6 +60,8 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-sort-destructure-keys": "^1.5.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
     "prettier": "^2.8.8",
     "prettier-plugin-packagejson": "^2.4.7",
     "replace-in-file": "^7.0.2",
@@ -66,7 +70,7 @@
     "tsx": "^4.7.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.10",
-    "vite-plugin-dts": "^3.6.4",
+    "vite-plugin-dts": "^3.7.0",
     "vite-plugin-linter": "^2.0.7",
     "vite-tsconfig-paths": "^4.2.2",
     "vitest": "^1.1.0"

@@ -9,5 +9,4 @@ export default defineConfig({
       '@test': path.resolve(__dirname, 'test'),
     },
   },
-})
-
+});
