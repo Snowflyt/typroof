@@ -18,9 +18,16 @@ export type MatchesBoolean<T> = IsNever<T> extends true ? false : T extends bool
 export type IsTrue<T> = Equals<T, true>;
 export type IsFalse<T> = Equals<T, false>;
 
+/**
+ * Check if `T` is a subtype of `U`.
+ *
+ * **Warning:** `any` is considered both subtype and supertype of all types in TypeScript, so
+ * both `Extends<string, any>` and `Extends<any, string>` will return `true` (`string` can be
+ * replaced with any other type, including `any`), so keep that in mind when using this.
+ */
 export type Extends<T, U> = (() => [T]) extends () => [U] ? true : false;
 /**
- * `Extends` but exclude `never` and `any` from `T` and `U`.
+ * {@link Extends} but fails if either `T` or `U` is `never` or `any`.
  */
 export type StrictExtends<T, U> = IsNever<T> extends true
   ? false
@@ -32,9 +39,16 @@ export type StrictExtends<T, U> = IsNever<T> extends true
   ? false
   : Extends<T, U>;
 
+/**
+ * Check if `T` is a supertype of `U`.
+ *
+ * **Warning:** `any` is considered both subtype and supertype of all types in TypeScript, so
+ * both `Covers<string, any>` and `Covers<any, string>` will return `true` (`string` can be
+ * replaced with any other type, including `any`), so keep that in mind when using this.
+ */
 export type Covers<T, U> = ((_: [T]) => void) extends (_: [U]) => void ? true : false;
 /**
- * `Covers` but exclude `never` and `any` from `T` and `U`.
+ * {@link Covers} but fails if either `T` or `U` is `never` or `any`.
  */
 export type StrictCovers<T, U> = IsNever<T> extends true
   ? false

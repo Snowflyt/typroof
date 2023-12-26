@@ -36,6 +36,7 @@
     "lint:fix": "eslint --fix {src,test}/**/*.{js,ts} *.{js,cjs,mjs,ts,cts,mts}",
     "prepare": "husky install",
     "test": "vitest run",
+    "test-types": "tsx src/cli.ts",
     "test:cov": "vitest run --coverage",
     "test:ui": "vitest --ui --coverage.enabled=true",
     "test:watch": "vitest",
