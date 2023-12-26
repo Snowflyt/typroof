@@ -77,13 +77,13 @@ export type Matcher = (
  * type ExtendsOneOfTwo<T, U, V> = T extends U ? true : T extends V ? true : false;
  * type NotExtendsOneOfTwo<T, U, V> = T extends U ? false : T extends V ? false : true;
  *
- * // Register a matcher at type level.
+ * // Register a matcher at type level
  * declare module 'typroof' {
  *   interface Expect<T> {
- *     // This mixes `toExtendOneOfTwo` into `expect`, i.e. `expect(...).toExtendOneOfTwo()`.
+ *     // This mixes `toExtendOneOfTwo` into `expect`, i.e. `expect(...).toExtendOneOfTwo()`
  *     toExtendOneOfTwo: <U, V>() => ExtendsOneOfTwo<T, U, V>;
- *     //                              ^ You can use a specific type as the return type,
- *     //                                which can be accessed in the matcher function.
+ *     //                            ^ You can use a specific type as the return type,
+ *     //                              which can be accessed in the matcher function
  *   }
  *
  *   // If you want to mix `toExtendOneOfTwo` into `expect.not`, you can do this:
@@ -92,10 +92,10 @@ export type Matcher = (
  *   }
  * }
  *
- * // Register the matcher function at runtime.
+ * // Register the matcher function at runtime
  * registerMatcher(toExtendOneOfTwo, (actual, types, returnType, { not }) => {
  *   // Check whether `actual.type` extends `types[0]` or `types[1]` by the return type of the matcher function,
- *   // i.e. the `ExtendsOneOfTwo<T, U, V>` or `NotExtendsOneOfTwo<T, U, V>`.
+ *   // i.e. the `ExtendsOneOfTwo<T, U, V>` or `NotExtendsOneOfTwo<T, U, V>`
  *   if (returnType.isLiteral() && returnType.getText() === 'true') return;
  *
  *   const actualText = chalk.bold(actual.text);

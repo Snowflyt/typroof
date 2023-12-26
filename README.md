@@ -78,61 +78,81 @@ The `toEqual` function strictly checks if the type is equal to the expected type
 expect<Append<'foo', 'bar'>>().toExtend<string>();
 ```
 
-## Assertions
+## Matchers
 
-### `expect<T>(x?: T).toThrow()`
+Matchers are functions that can be used via `expect<T>(x?: T).toXxx()` or `expect<T>(x?: T).not.toXxx()` to assert the type. Typroof provides some built-in matchers, and you can also create your own matchers (see [Custom Matchers](#custom-matchers)).
+
+For example:
+
+```typescript
+expect<Append<'foo', 'bar'>>().toEqual<'foobar'>();
+expect<Append<1, 2>>().toThrow();
+expect<Append<'foo', 'bar'>>().not.toBeAny();
+expect(append('foo', 'bar')).toExtend<string>();
+expect('baz' as const).toBe('baz');
+```
+
+The actual type to test can either be passed as a type argument to `expect`, or passed as a value argument to `expect`. The former is more concise, but the latter is more readable. You can choose whichever you like. All built-in matchers also support both syntaxes if it needs a type argument.
+
+Matchers can choose to support `expect.not` or not, but it is recommended to support `expect.not` if possible. All built-in matchers support `expect.not`.
+
+Matchers are not forced to be named `toXxx`, but it is recommended to do so. All built-in matchers are named `toXxx`.
+
+The following is a list of built-in matchers. Remember that you can also use `expect.not` to negate them.
+
+### `.toThrow()`
 
 Expect a pre emitted diagnostic between the start and end of the given type.
 
-### `expect<T>(x?: T).toEqual<U>(y?: U)`
+### `.toEqual<U>(y?: U)`
 
 Expect the type to be equal to the given type.
 
-### `expect<T>(x?: T).toBeAny()`
+### `.toBeAny()`
 
 Expect the type to be `any`.
 
-### `expect<T>(x?: T).toBeNever()`
+### `.toBeNever()`
 
 Expect the type to be `never`.
 
-### `expect<T>(x?: T).toBeNull()`
+### `.toBeNull()`
 
 Expect the type to be `null`.
 
-### `expect<T>(x?: T).toBeUndefined()`
+### `.toBeUndefined()`
 
 Expect the type to be `undefined`.
 
-### `expect<T>(x?: T).toBeNullish()`
+### `.toBeNullish()`
 
 Expect the type to be `null`, `undefined` or `null | undefined`.
 
-### `expect<T>(x?: T).toBeBoolean()`
+### `.toBeBoolean()`
 
 Expect the type to be `true`, `false` or `boolean`.
 
-### `expect<T>(x?: T).toBeTrue()`
+### `.toBeTrue()`
 
 Expect the type to be `true`.
 
-### `expect<T>(x?: T).toBeFalse()`
+### `.toBeFalse()`
 
 Expect the type to be `false`.
 
-### `expect<T>(x?: T).toExtend<U>(y?: U)`
+### `.toExtend<U>(y?: U)`
 
 Expect the type to extend the given type.
 
-### `expect<T>(x?: T).toStrictExtend<U>(y?: U)`
+### `.toStrictExtend<U>(y?: U)`
 
 Expect the type to strictly extend the given type (i.e. both types should not be `never` or `any`).
 
-### `expect<T>(x?: T).toCover<U>(y?: U)`
+### `.toCover<U>(y?: U)`
 
 Expect the type to cover the given type (i.e. the given type should extend the type).
 
-### `expect<T>(x?: T).toStrictCover<U>(y?: U)`
+### `.toStrictCover<U>(y?: U)`
 
 Expect the type to strictly cover the given type (i.e. both types should not be `never` or `any`).
 
@@ -160,7 +180,7 @@ console.log(
 
 You can create custom matchers by using the `registerMatcher` function.
 
-For example, you can create a `toExtendOneOfTwo` matcher to check if the type extends one of the two given types:
+For example, you can create a `toExtendOneOfTwo` matcher to check if the actual type to test extends one of the two given types:
 
 ```typescript
 import chalk from 'chalk';
@@ -171,13 +191,13 @@ const toExtendOneOfTwo = 'toExtendOneOfTwo';
 type ExtendsOneOfTwo<T, U, V> = T extends U ? true : T extends V ? true : false;
 type NotExtendsOneOfTwo<T, U, V> = T extends U ? false : T extends V ? false : true;
 
-// Register a matcher at type level.
+// Register a matcher at type level
 declare module 'typroof' {
   interface Expect<T> {
-    // This mixes `toExtendOneOfTwo` into `expect`, i.e. `expect(...).toExtendOneOfTwo()`.
+    // This mixes `toExtendOneOfTwo` into `expect`, i.e. `expect(...).toExtendOneOfTwo()`
     toExtendOneOfTwo: <U, V>() => ExtendsOneOfTwo<T, U, V>;
-    //                              ^ You can use a specific type as the return type,
-    //                                which can be accessed in the matcher function.
+    //                            ^ You can use a specific type as the return type,
+    //                              which can be accessed in the matcher function
   }
 
   // If you want to mix `toExtendOneOfTwo` into `expect.not`, you can do this:
@@ -186,10 +206,10 @@ declare module 'typroof' {
   }
 }
 
-// Register the matcher function at runtime.
+// Register the matcher function at runtime
 registerMatcher(toExtendOneOfTwo, (actual, types, returnType, { not }) => {
   // Check whether `actual.type` extends `types[0]` or `types[1]` by the return type of the matcher function,
-  // i.e. the `ExtendsOneOfTwo<T, U, V>` or `NotExtendsOneOfTwo<T, U, V>`.
+  // i.e. the `ExtendsOneOfTwo<T, U, V>` or `NotExtendsOneOfTwo<T, U, V>`
   if (returnType.isLiteral() && returnType.getText() === 'true') return;
 
   const actualText = chalk.bold(actual.text);
