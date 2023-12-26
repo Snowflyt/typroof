@@ -174,7 +174,14 @@ export interface Expect<T> {
   toBeFalse: ToBeFalse<T>;
 
   /**
-   * Expect a type to extend the given type.
+   * Expect a type to be assignable to the given type (i.e. the given type should be a supertype of
+   * the type).
+   *
+   * **Warning:** `any` is considered both subtype and supertype of all types in TypeScript, so
+   * both `expect<string>().toExtend<any>();` and `expect<any>().toExtend<string>();` will pass
+   * (`string` can be replaced with any other type, including `any`), so keep that in mind when
+   * using this. If you want to check if the type is assignable to the given type but not `any`,
+   * use {@link toStrictExtend} instead.
    *
    * @example
    * ```typescript
@@ -188,7 +195,7 @@ export interface Expect<T> {
    */
   toExtend: ToExtend<T>;
   /**
-   * Expect a type to strictly extend the given type (i.e. both types should not be `never` or `any`).
+   * Like {@link toExtend}, but fails if either type is `never` or `any`.
    *
    * @example
    * ```typescript
@@ -203,7 +210,14 @@ export interface Expect<T> {
   toStrictExtend: ToStrictExtend<T>;
 
   /**
-   * Expect a type to cover the given type (i.e. the given type should extend the type).
+   * Expect the given type to be assignable to the type (i.e. the given type should be a subtype of
+   * the type).
+   *
+   * **Warning:** `any` is considered both subtype and supertype of all types in TypeScript, so
+   * both `expect<string>().toCover<any>();` and `expect<any>().toCover<string>();` will pass
+   * (`string` can be replaced with any other type, including `any`), so keep that in mind when
+   * using this. If you want to check if the given type is assignable to the type but not `any`,
+   * use {@link toStrictCover} instead.
    *
    * @example
    * ```typescript
@@ -217,7 +231,7 @@ export interface Expect<T> {
    */
   toCover: ToCover<T>;
   /**
-   * Expect a type to strictly cover the given type (i.e. both types should not be `never` or `any`).
+   * Like {@link toCover}, but fails if either type is `never` or `any`.
    *
    * @example
    * ```typescript

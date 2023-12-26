@@ -23,7 +23,8 @@ export type IsFalse<T> = Equals<T, false>;
  *
  * **Warning:** `any` is considered both subtype and supertype of all types in TypeScript, so
  * both `Extends<string, any>` and `Extends<any, string>` will return `true` (`string` can be
- * replaced with any other type, including `any`), so keep that in mind when using this.
+ * replaced with any other type, including `any`), so keep that in mind when using this. If you
+ * want to check if `T` is a subtype of `U` but not `any`, use {@link StrictExtends} instead.
  */
 export type Extends<T, U> = (() => [T]) extends () => [U] ? true : false;
 /**
@@ -44,7 +45,8 @@ export type StrictExtends<T, U> = IsNever<T> extends true
  *
  * **Warning:** `any` is considered both subtype and supertype of all types in TypeScript, so
  * both `Covers<string, any>` and `Covers<any, string>` will return `true` (`string` can be
- * replaced with any other type, including `any`), so keep that in mind when using this.
+ * replaced with any other type, including `any`), so keep that in mind when using this. If you
+ * want to check if `T` is a supertype of `U` but not `any`, use {@link StrictCovers} instead.
  */
 export type Covers<T, U> = ((_: [T]) => void) extends (_: [U]) => void ? true : false;
 /**
