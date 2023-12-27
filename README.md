@@ -144,7 +144,7 @@ Expect the type to be `false`.
 
 Expect the type to be assignable to the given type (i.e. the given type should be a supertype of the type).
 
-**Warning:** `any` is considered both subtype and supertype of all types in TypeScript, so both `expect<string>().toExtend<any>()` and `expect<any>().toExtend<string>()` will pass (`string` can be replaced with any other type, including `any`), so keep that in mind when using this. If you want to check if the type is assignable to the given type but not `any`, use `.toStrictExtend` instead.
+**Warning:** In TypeScript, `any` is both a subtype and a supertype of all other types. Therefore, `expect<string>().toExtend<any>()` and `expect<any>().toExtend<string>()` will both pass. The exception is `never`, which is not assignable to any type (thus `expect<any>().toExtend<never>()` fails). Keep this in mind, as it may lead to unexpected results when working with `any` or `never`. Use `.toStrictExtend` for a stricter version that fails if either the type or the given type is `never` or `any`.
 
 ### `.toStrictExtend<U>(y?: U)`
 
@@ -154,7 +154,7 @@ Like `.toExtend`, but fails if either the type or the given type is `never` or `
 
 Expect the given type to be assignable to the type (i.e. the given type should be a subtype of the type).
 
-**Warning:** `any` is considered both subtype and supertype of all types in TypeScript, so both `expect<string>().toCover<any>()` and `expect<any>().toCover<string>()` will pass (`string` can be replaced with any other type, including `any`), so keep that in mind when using this. If you want to check if the given type is assignable to the type but not `any`, use `.toStrictCover` instead.
+**Warning:** In TypeScript, `any` is both a subtype and a supertype of all other types. Therefore, `expect<string>().toCover<any>()` and `expect<any>().toCover<string>()` will both pass. The exception is `never`, which is not assignable to any type (thus `expect<never>().toCover<any>()` fails). Keep this in mind, as it may lead to unexpected results when working with `any` or `never`. Use `.toStrictCover` for a stricter version that fails if either the type or the given type is `never` or `any`.
 
 ### `.toStrictCover<U>(y?: U)`
 

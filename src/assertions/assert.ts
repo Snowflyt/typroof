@@ -22,12 +22,12 @@ import type { NotToBeNull, ToBeNull } from './impl/toBeNull';
 import type { NotToBeNullish, ToBeNullish } from './impl/toBeNullish';
 import type { NotToBeTrue, ToBeTrue } from './impl/toBeTrue';
 import type { NotToBeUndefined, ToBeUndefined } from './impl/toBeUndefined';
-import type { ToCover } from './impl/toCover';
+import type { NotToCover, ToCover } from './impl/toCover';
 import type { NotToEqual, ToEqual } from './impl/toEqual';
-import type { ToExtend } from './impl/toExtend';
+import type { NotToExtend, ToExtend } from './impl/toExtend';
 import type { NotToMatchBoolean, ToMatchBoolean } from './impl/toMatchBoolean';
-import type { ToStrictCover } from './impl/toStrictCover';
-import type { ToStrictExtend } from './impl/toStrictExtend';
+import type { NotToStrictCover, ToStrictCover } from './impl/toStrictCover';
+import type { NotToStrictExtend, ToStrictExtend } from './impl/toStrictExtend';
 import type { NotToThrow, ToThrow } from './impl/toThrow';
 import type { Project } from 'ts-morph';
 
@@ -177,11 +177,11 @@ export interface Expect<T> {
    * Expect a type to be assignable to the given type (i.e. the given type should be a supertype of
    * the type).
    *
-   * **Warning:** `any` is considered both subtype and supertype of all types in TypeScript, so
-   * both `expect<string>().toExtend<any>();` and `expect<any>().toExtend<string>();` will pass
-   * (`string` can be replaced with any other type, including `any`), so keep that in mind when
-   * using this. If you want to check if the type is assignable to the given type but not `any`,
-   * use {@link toStrictExtend} instead.
+   * **Warning:** In TypeScript, `any` is both a subtype and a supertype of all other types.
+   * Therefore, `expect<string>().toExtend<any>()` and `expect<any>().toExtend<string>()` will both pass.
+   * The exception is `never`, which is not assignable to any type (thus `expect<any>().toExtend<never>()` fails).
+   * Keep this in mind, as it may lead to unexpected results when working with `any` or `never`.
+   * Use {@link toStrictExtend} for a stricter version that fails if either the type or the given type is `never` or `any`.
    *
    * @example
    * ```typescript
@@ -213,11 +213,11 @@ export interface Expect<T> {
    * Expect the given type to be assignable to the type (i.e. the given type should be a subtype of
    * the type).
    *
-   * **Warning:** `any` is considered both subtype and supertype of all types in TypeScript, so
-   * both `expect<string>().toCover<any>();` and `expect<any>().toCover<string>();` will pass
-   * (`string` can be replaced with any other type, including `any`), so keep that in mind when
-   * using this. If you want to check if the given type is assignable to the type but not `any`,
-   * use {@link toStrictCover} instead.
+   * **Warning:** In TypeScript, `any` is both a subtype and a supertype of all other types.
+   * Therefore, `expect<string>().toCover<any>()` and `expect<any>().toCover<string>()` will both pass.
+   * The exception is `never`, which is not assignable to any type (thus `expect<never>().toCover<any>()` fails).
+   * Keep this in mind, as it may lead to unexpected results when working with `any` or `never`.
+   * Use {@link toStrictCover} for a stricter version that fails if either the type or the given type is `never` or `any`.
    *
    * @example
    * ```typescript
@@ -373,7 +373,14 @@ export interface ExpectNot<T> {
   toBeFalse: NotToBeFalse<T>;
 
   /**
-   * Expect a type not to extend the given type.
+   * Expect a type not to be assignable to the given type (i.e. the given type should not be a
+   * supertype of the type).
+   *
+   * **Warning:** In TypeScript, `any` is both a subtype and a supertype of all other types.
+   * Therefore, `expect<string>().not.toExtend<any>()` and `expect<any>().not.toExtend<string>()` will both fail.
+   * The exception is `never`, which is not assignable to any type (thus `expect<any>().not.toExtend<never>()` passes).
+   * Keep this in mind, as it may lead to unexpected results when working with `any` or `never`.
+   * Use not.{@link toStrictExtend} for a stricter version that passes if either the type or the given type is `never` or `any`.
    *
    * @example
    * ```typescript
@@ -385,9 +392,9 @@ export interface ExpectNot<T> {
    * expect<'foo'>().not.toExtend<any>(); // fail
    * ```
    */
-  toExtend: ToExtend<T>;
+  toExtend: NotToExtend<T>;
   /**
-   * Expect a type not to strictly extend the given type (i.e. both types should not be `never` or `any`).
+   * Like not.{@link toExtend}, but passes if either type is `never` or `any`.
    *
    * @example
    * ```typescript
@@ -399,10 +406,17 @@ export interface ExpectNot<T> {
    * expect<'foo'>().not.toStrictExtend<any>(); // pass
    * ```
    */
-  toStrictExtend: ToStrictExtend<T>;
+  toStrictExtend: NotToStrictExtend<T>;
 
   /**
-   * Expect a type not to cover the given type (i.e. the given type should not extend the type).
+   * Expect the given type not to be assignable to the type (i.e. the given type should not be a
+   * subtype of the type).
+   *
+   * **Warning:** In TypeScript, `any` is both a subtype and a supertype of all other types.
+   * Therefore, `expect<string>().not.toCover<any>()` and `expect<any>().not.toCover<string>()` will both fail.
+   * The exception is `never`, which is not assignable to any type (thus `expect<never>().not.toCover<any>()` passes).
+   * Keep this in mind, as it may lead to unexpected results when working with `any` or `never`.
+   * Use not.{@link toStrictCover} for a stricter version that passes if either the type or the given type is `never` or `any`.
    *
    * @example
    * ```typescript
@@ -414,9 +428,9 @@ export interface ExpectNot<T> {
    * expect<any>().not.toCover<'foo'>(); // fail
    * ```
    */
-  toCover: ToCover<T>;
+  toCover: NotToCover<T>;
   /**
-   * Expect a type not to strictly cover the given type (i.e. both types should not be `never` or `any`).
+   * Like not.{@link toCover}, but passes if either type is `never` or `any`.
    *
    * @example
    * ```typescript
@@ -428,7 +442,7 @@ export interface ExpectNot<T> {
    * expect<any>().not.toStrictCover<'foo'>(); // pass
    * ```
    */
-  toStrictCover: ToStrictCover<T>;
+  toStrictCover: NotToStrictCover<T>;
 }
 
 /**
