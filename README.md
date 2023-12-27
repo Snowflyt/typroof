@@ -10,7 +10,7 @@
 npm install --save-dev typroof
 ```
 
-### yarn
+### Yarn
 
 ```bash
 yarn add -D typroof
