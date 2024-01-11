@@ -1,8 +1,8 @@
 {
   "name": "typroof",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "private": true,
-  "description": "Test your TypeScript type definitions elegantly",
+  "description": "🚀 Revolutionize your TS type testing with a fast, smooth, and flexible WYSIWYG experience!",
   "keywords": [
     "typescript",
     "typroof",
@@ -19,7 +19,7 @@
     "url": "https://github.com/Snowfly-T/typroof"
   },
   "license": "MIT",
-  "author": "Snowflyt <gaoge011022@gmail.com>",
+  "author": "Snowflyt <gaoge011022@163.com>",
   "type": "module",
   "main": "./index.js",
   "module": "./index.js",
@@ -29,7 +29,7 @@
   },
   "scripts": {
     "prebuild": "npm run clean",
-    "build": "tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json && cpy ./dist/**/* ./build/ && rimraf dist && prettier --loglevel=silent --print-width 80 --write ./build/ && cpy ./package.json ./build/ && replace-in-file \"  \\\"private\\\": true,\" \"\" ./build/package.json && replace-in-file \"  \\\"prepare\\\": \\\"husky install\\\",\" \"\" ./build/package.json && prettier --loglevel=silent --print-width 80 --write ./build/package.json && cpy ./README.md ./build/ && cpy ./LICENSE ./build/ && cpy ./screenshot.png ./build/",
+    "build": "tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json && cpy ./dist/**/* ./build/ && rimraf dist && prettier --loglevel=silent --print-width 80 --write ./build/ && cpy ./package.json ./build/ && replace-in-file \"  \\\"private\\\": true,\" \"\" ./build/package.json && replace-in-file \"  \\\"prepare\\\": \\\"husky install\\\",\" \"\" ./build/package.json && prettier --loglevel=silent --print-width 80 --write ./build/package.json && cpy ./README.md ./build/ && cpy ./LICENSE ./build/ && cpy ./screenshot.png ./build/ && cpy ./screenshot.gif ./build/",
     "clean": "rimraf dist build",
     "format": "prettier --write {src,test}/**/*.{js,ts,json} *.{js,cjs,mjs,ts,cts,mts,json,md} && prettier --write --parser json .hintrc",
     "lint": "eslint {src,test}/**/*.{js,ts} *.{js,cjs,mjs,ts,cts,mts}",
@@ -44,19 +44,21 @@
   },
   "dependencies": {
     "chalk": "^5.3.0",
-    "meow": "^13.0.0",
+    "esbuild": "^0.19.11",
+    "get-tsconfig": "^4.7.2",
+    "meow": "^13.1.0",
     "ts-morph": "^21.0.1"
   },
   "devDependencies": {
-    "@commitlint/cli": "^18.4.3",
-    "@types/eslint": "^8.56.0",
+    "@commitlint/cli": "^18.4.4",
+    "@types/eslint": "^8.56.2",
     "@types/lint-staged": "^13.3.0",
-    "@types/node": "^20.10.5",
+    "@types/node": "^20.11.0",
     "@types/prettier": "^2.7.3",
-    "@typescript-eslint/eslint-plugin": "^6.16.0",
-    "@typescript-eslint/parser": "^6.16.0",
-    "@vitest/coverage-v8": "^1.1.0",
-    "@vitest/ui": "^1.1.0",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
+    "@vitest/coverage-v8": "^1.1.3",
+    "@vitest/ui": "^1.1.3",
     "cpy-cli": "^5.0.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^8.10.0",
@@ -67,12 +69,12 @@
     "husky": "^8.0.3",
     "lint-staged": "^15.2.0",
     "prettier": "^2.8.8",
-    "prettier-plugin-packagejson": "^2.4.7",
-    "replace-in-file": "^7.0.2",
+    "prettier-plugin-packagejson": "^2.4.9",
+    "replace-in-file": "^7.1.0",
     "rimraf": "^5.0.5",
     "tsc-alias": "^1.8.8",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3",
-    "vitest": "^1.1.0"
+    "vitest": "^1.1.3"
   }
 }

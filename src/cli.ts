@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import meow from 'meow';
 
+import { loadConfig } from './config';
 import { createTyproofProject, formatGroupResult, formatSummary, summary } from './test';
 
 const cli = meow(
@@ -54,6 +55,7 @@ const { files: testFiles } = cli.flags;
 
 const project = createTyproofProject({
   tsConfigFilePath: path.join(cwd, 'tsconfig.json'),
+  ...(await loadConfig({ cwd })),
   ...(testFiles && testFiles.length > 0 && { testFiles }),
 });
 

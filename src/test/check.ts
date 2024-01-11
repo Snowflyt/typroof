@@ -1,6 +1,6 @@
 import { ts } from 'ts-morph';
 
-import { matchers } from '../assertions/matcher';
+import { analyzers } from '../assertions/matcher';
 
 import type { AnalyzeResult, Assertion, Group, Test } from './analyze';
 import type { TyproofProject } from './project';
@@ -55,10 +55,11 @@ export const checkAnalyzeResult = ({
       const testResult: TestResult = { description: child.description, assertionResults: [] };
 
       for (const assertion of child.assertions) {
-        const { actualNode, methodName, not, returnType, types } = assertion;
+        const { actualNode, matcherName, not, passedOrValidationResult, statement, type } =
+          assertion;
 
-        const checker = matchers.get(methodName);
-        if (!checker) throw new Error(`Can not find checker for '${methodName}'`);
+        const analyzer = analyzers.get(matcherName);
+        if (!analyzer) throw new Error(`Can not find analyzer for '${matcherName}'`);
 
         const actual = {
           text: ts.isTypeNode(actualNode.compilerNode)
@@ -67,10 +68,10 @@ export const checkAnalyzeResult = ({
           type: actualNode.getType(),
           node: actualNode,
         };
-        const meta = { project, sourceFile, diagnostics, not };
+        const meta = { diagnostics, not, project, sourceFile, statement };
 
         try {
-          checker(actual, types, returnType, meta);
+          analyzer(actual, type, passedOrValidationResult, meta);
         } catch (error) {
           if (typeof error === 'string') {
             const assertionResult: AssertionResultFail = {

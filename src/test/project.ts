@@ -93,7 +93,11 @@ export const createTyproofProject = (options?: TyproofProjectOptions): TyproofPr
     skipAddingFilesFromTsConfig: true,
     ...projectOptions,
   });
-  const testFiles = project.addSourceFilesAtPaths(testFileGlobs);
+  const testFiles = project.addSourceFilesAtPaths(
+    typeof testFileGlobs === 'string'
+      ? ['!**/node_modules/**/*.*', testFileGlobs]
+      : ['!**/node_modules/**/*.*', ...testFileGlobs],
+  );
 
   const expectSymbol = getExpectSymbol(project);
   const { describeSymbol, itSymbol, testSymbol } = getTestSymbols(project);

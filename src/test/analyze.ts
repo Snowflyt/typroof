@@ -19,11 +19,12 @@ export interface Test {
   assertions: Assertion[];
 }
 export interface Assertion {
+  statement: CallExpression<ts.CallExpression>;
   actualNode: Node<ts.Node>;
-  methodName: string;
+  matcherName: string;
   not: boolean;
-  types: Type<ts.Type>[];
-  returnType: Type<ts.Type>;
+  type: Type<ts.Type>;
+  passedOrValidationResult: boolean | Type<ts.Type>;
 }
 
 export interface AnalyzeResult {
@@ -113,16 +114,30 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
 
         if (access.getType().getCallSignatures().length === 0) continue;
 
-        const subCall = access.getParentIfKind(ts.SyntaxKind.CallExpression)!;
+        const toCall = access.getParentIfKind(ts.SyntaxKind.CallExpression)!;
 
-        const methodName = access.getName();
-        const types =
-          subCall.getTypeArguments().length > 0
-            ? subCall.getTypeArguments().map((a) => a.getType())
-            : subCall.getArguments().map((a) => a.getType());
-        const returnType = subCall.getReturnType();
+        const matcher = toCall.getArguments()[0]!;
+        const match =
+          matcher.getType().getCallSignatures().length > 0
+            ? matcher.getType().getCallSignatures()[0]!.getReturnType()
+            : matcher.getType();
+        const matcherName = match.getTypeArguments()[0]!.getText().slice(1, -1);
+        const type = match.getTypeArguments()[1]!;
+        const passedOrValidationResult =
+          toCall.getReturnType().getText() === '"pass"'
+            ? true
+            : toCall.getReturnType().getText() === '"fail"'
+            ? false
+            : toCall.getReturnType().getTypeArguments()[0]!;
 
-        test.assertions.push({ actualNode, methodName, not, types, returnType });
+        test.assertions.push({
+          statement: toCall,
+          actualNode,
+          matcherName,
+          not,
+          type,
+          passedOrValidationResult,
+        });
       }
 
       group.children.push(test);

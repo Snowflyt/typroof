@@ -1,7 +1,23 @@
+import type { Validator } from './assert';
 import type { TyproofProject } from '../test';
-import type { Diagnostic, Node, SourceFile, Type, ts } from 'ts-morph';
+import type { CallExpression, Diagnostic, Node, SourceFile, Type, ts } from 'ts-morph';
 
-export const matchers = new Map<string, Matcher>();
+declare const analyze: unique symbol;
+export interface ToAnalyze<T = never> {
+  [analyze]: T;
+}
+
+declare const matchTag: unique symbol;
+export interface Match<Tag extends keyof Validator<unknown, unknown>, T = never> {
+  [matchTag]: Tag;
+  type: T;
+}
+
+export const match = <Tag extends keyof Validator<unknown, unknown>, T = never>() =>
+  ({} as Match<Tag, T>);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const analyzers = new Map<string, Analyzer<any>>();
 
 interface Actual {
   /**
@@ -21,7 +37,7 @@ interface Actual {
   readonly node: Node<ts.Node>;
 }
 
-export interface MatcherMeta {
+export interface AnalyzerMeta {
   /**
    * The typroof project.
    */
@@ -38,73 +54,114 @@ export interface MatcherMeta {
    * Whether `expect` is called with `expect.not`.
    */
   not: boolean;
+  /**
+   * The statement of the assertion.
+   */
+  statement: CallExpression<ts.CallExpression>;
 }
 
 /**
- * A matcher function.
+ * An analyzer function.
  */
-export type Matcher = (
-  /**
-   * The type passed to `expect`. For example, if `expect<T>()` is called, then `actual` is `T`.
-   */
-  actual: Actual,
-  /**
-   * The type arguments passed to the matcher function. For example, if the method is `expect<T>().toExtendOneOfTwo<U, V>()`,
-   * then `types` is `[U, V]`.
-   */
-  types: Type<ts.Type>[],
-  /**
-   * The return type of the matcher function.
-   */
-  returnType: Type<ts.Type>,
-  /**
-   * Meta data of the matcher function.
-   */
-  meta: MatcherMeta,
+export type Analyzer<Tag extends keyof Validator<unknown, unknown>> = (
+  ...args: [
+    /**
+     * The type passed to `expect`. For example, if `expect<T>()` is called, then `actual` is `T`.
+     */
+    actual: Actual,
+    /**
+     * The type argument passed to the matcher. For example, if the method is
+     * `expect<T>().to(equal<U>)`, then `type` is `U`.
+     */
+    type: Type<ts.Type>,
+    ...(Validator<unknown, unknown>[Tag] extends ToAnalyze<unknown>
+      ? [
+          /**
+           * The return type of the validator.
+           */
+          validationResult: Type<ts.Type>,
+        ]
+      : [
+          /**
+           * Whether the validator passed.
+           */
+          passed: boolean,
+        ]),
+    /**
+     * Meta data of the analyzer function.
+     */
+    meta: AnalyzerMeta,
+  ]
 ) => void;
 
 /**
- * Register a matcher.
- * @param name Method name to be mixed into `expect`.
- * @param matcher The matcher function.
+ * Register an analyzer.
+ * @param tag The matcher tag.
+ * @param analyzer The analyzer function.
  *
  * @example
  * ```typescript
- * import { registerMatcher } from 'typroof';
+ * import { match, registerAnalyzer } from 'typroof';
  *
- * const toExtendOneOfTwo = 'toExtendOneOfTwo';
+ * // `equal` is a matcher that takes a type argument.
+ * // If no argument is needed, you can simply use `match<'matcherName'>()`
+ * // instead of a function.
+ * export const equal = <U>(y?: U) => match<'equal', U>();
  *
- * type ExtendsOneOfTwo<T, U, V> = T extends U ? true : T extends V ? true : false;
- * type NotExtendsOneOfTwo<T, U, V> = T extends U ? false : T extends V ? false : true;
+ * // Check whether `T` is equal to `U`.
+ * // It is a utility type used in the type level validation step.
+ * type Equals<T, U> = (<G>() => G extends T ? 1 : 2) extends <G>() => G extends U ? 1 : 2
+ *   ? true
+ *   : false;
  *
- * // Register a matcher at type level
+ * // Define how the type level validation step works.
+ * // If type level validation is the only thing you need to do (e.g., `equal`),
+ * // it should return a boolean type.
+ * // Otherwise, it should return a `ToAnalyze<SomeType>`, e.g. `error` returns
+ * // `ToAnalyze<never>`, the `ToAnalyze` means to determine whether the assertion
+ * // passed or not needs further code analysis. You can pass any type to
+ * // `ToAnalyze` for the code analysis step to use, but here `error` does not need it.
  * declare module 'typroof' {
- *   interface Expect<T> {
- *     // This mixes `toExtendOneOfTwo` into `expect`, i.e. `expect(...).toExtendOneOfTwo()`
- *     toExtendOneOfTwo: <U, V>() => ExtendsOneOfTwo<T, U, V>;
- *     //                            ^ You can use a specific type as the return type,
- *     //                              which can be accessed in the matcher function
- *   }
- *
- *   // If you want to mix `toExtendOneOfTwo` into `expect.not`, you can do this:
- *   interface ExpectNot<T> {
- *     toExtendOneOfTwo: <U, V>() => NotExtendsOneOfTwo<T, U, V>;
+ *   interface Validator<T, U> {
+ *     // Here `equal` is the name of the matcher,
+ *     // it must be the same as that in `match<'equal'>()`.
+ *     equal: Equals<T, U>;
  *   }
  * }
  *
- * // Register the matcher function at runtime
- * registerMatcher(toExtendOneOfTwo, (actual, types, returnType, { not }) => {
- *   // Check whether `actual.type` extends `types[0]` or `types[1]` by the return type of the matcher function,
- *   // i.e. the `ExtendsOneOfTwo<T, U, V>` or `NotExtendsOneOfTwo<T, U, V>`
- *   if (returnType.isLiteral() && returnType.getText() === 'true') return;
+ * // The `registerToEqual` function is called somewhere before code analysis is executed.
+ * // If you need to define custom matchers, you should call the corresponding `registerTo...`
+ * // function first — The `typroof.config.ts` file is a good place to do this.
+ * export const registerToEqual = () => {
+ *   // If it is a type level only matcher (i.e. The related validator returns a boolean type),
+ *   // the third argument is a boolean indicating whether the validation step is passed.
+ *   // Otherwise (i.e. The related validator returns a `ToAnalyze<SomeType>`), the third
+ *   // argument is a ts-morph `Type` object representing the type to analyze, e.g., `error`
+ *   // returns `ToAnalyze<never>`, so the third argument is a `Type` object representing `never`.
+ *   registerAnalyzer('equal', (actual, expected, passed, { not }) => {
+ *     if (passed) return;
  *
- *   const actualText = chalk.bold(actual.text);
- *   const expectedType = `one of ${chalk.bold(types.map((t) => t.getText()).join(', '))}`;
+ *     // Here `equal` is a type level only assertion, so we just need to report the error.
+ *     // But you can do anything you want here, e.g., `error` checks if the type emits an
+ *     // error. The fourth argument provides necessary metadata for you to achieve almost
+ *     // anything you can via ts-morph.
  *
- *   throw `Expect ${actualText} ${not ? 'not ' : ''}to extend ${expectedType}, but `${not ? 'did' : 'did not'}`.`;
- * });
+ *     const actualText = chalk.bold(actual.text);
+ *     const expectedType = chalk.bold(expected.getText());
+ *     const actualType = chalk.bold(actual.type.getText());
+ *
+ *     // Throw a string to report the error.
+ *     throw (
+ *       `Expect ${actualText} ${not ? 'not ' : ''}to equal ${expectedType}, ` +
+ *       `but got ${actualType}.`
+ *     );
+ *   });
+ * };
  * ```
  */
-export const registerMatcher = (name: string, matcher: Matcher) => {
-  matchers.set(name, matcher);
+export const registerAnalyzer = <Tag extends keyof Validator<unknown, unknown>>(
+  tag: Tag,
+  analyzer: Analyzer<Tag>,
+) => {
+  analyzers.set(tag, analyzer);
 };
