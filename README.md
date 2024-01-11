@@ -43,19 +43,27 @@ export const append = <S extends string, Ext extends string>(s: S, ext: Ext): Ap
 Then you can write a `string-utils.proof.ts` file to test them:
 
 ```typescript
-import { describe, expect, it, test, equal, extend, error } from 'typroof';
+import { describe, equal, error, expect, extend, it, test } from 'typroof';
+
+import { append } from './string-utils';
 
 import type { Append, Prepend } from './string-utils';
 
 test('Append', () => {
   expect<Append<'foo', 'bar'>>().to(equal<'foobar'>);
   expect<Append<'foo', 'bar'>>().to(extend<string>);
+  expect<Append<'foo', 'bar'>>().not.to(extend<number>);
   expect(append('foo', 'bar')).to(equal('foobar' as const));
 });
 
 describe('Prepend', () => {
   it('should prepend a string to another', () => {
     expect<Prepend<'foo', 'bar'>>().to(equal<'foobar'>);
+  });
+
+  it('should accept only strings', () => {
+    // @ts-expect-error - should trigger error
+    expect<Prepend<42, 43>>().to(error);
   });
 });
 ```
