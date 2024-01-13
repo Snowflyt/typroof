@@ -1,0 +1,47 @@
+import typroof, { formatGroupResult, formatSummary } from 'typroof';
+import { describe, expect, it } from 'vitest';
+
+const trimIndent = (str: string) => {
+  const lines = str.split('\n');
+  let minIndent = Infinity;
+  for (const line of lines) {
+    if (line.trim() === '') continue;
+    const indent = line.search(/\S/);
+    if (indent !== -1) minIndent = Math.min(minIndent, indent);
+  }
+  return lines
+    .map((line) => line.slice(minIndent))
+    .join('\n')
+    .trim();
+};
+
+// eslint-disable-next-line no-control-regex
+const cleanAnsi = (str: string) => str.replace(/\u001b\[[0-9;]*m/g, '');
+
+describe('Programmatic API', () => {
+  it('should output the same results as the CLI', async () => {
+    const results = await typroof({
+      testFiles: 'test/programmatic-api-test-proof.ts',
+    });
+    const formattedResults = results.map((r) => formatGroupResult(r.rootGroupResult)).join('\n');
+
+    expect(cleanAnsi(formattedResults)).toEqual(
+      trimIndent(`
+        ❯ test/programmatic-api-test-proof.ts (3)
+          ✔ Append
+          ❯ Prepend (2)
+            ✘ should prepend a string to another
+              × 21:12 Expect Prepend<'foo', 'bar'> to equal "foobar", but got "barfoo".
+            ✔ should accept only strings
+      `),
+    );
+
+    const summary = formatSummary({ groups: results.map((r) => r.rootGroupResult) });
+    expect(trimIndent(cleanAnsi(summary))).toEqual(
+      trimIndent(`
+        Test Files  1 failed (1)
+             Tests  1 failed | 2 passed (3)
+      `),
+    );
+  });
+});
