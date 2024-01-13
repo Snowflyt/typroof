@@ -1,5 +1,5 @@
-import { defineConfig } from 'typroof/config';
+import { defineConfig } from './src/config';
 
 export default defineConfig({
-  testFiles: '**/*.proof.ts',
+  testFiles: 'src/**/*.proof.ts',
 });

@@ -6,3 +6,4 @@ export * from './assertions';
 export * from './test';
 
 export type { Config } from './config';
+export type { Plugin } from './plugin';

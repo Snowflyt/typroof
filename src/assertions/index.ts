@@ -1,5 +1,4 @@
 export { expect } from './assert';
-export { match, registerAnalyzer } from './matcher';
 
 export type { Validator } from './assert';
 export type { Analyzer, AnalyzerMeta, Match, ToAnalyze } from './matcher';

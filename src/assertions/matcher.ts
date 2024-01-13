@@ -2,17 +2,25 @@ import type { Validator } from './assert';
 import type { TyproofProject } from '../test';
 import type { CallExpression, Diagnostic, Node, SourceFile, Type, ts } from 'ts-morph';
 
-declare const analyze: unique symbol;
 export interface ToAnalyze<T = never> {
-  [analyze]: T;
+  'typroof/ToAnalyze': T;
 }
 
-declare const matchTag: unique symbol;
 export interface Match<Tag extends keyof Validator<unknown, unknown>, T = never> {
-  [matchTag]: Tag;
+  'typroof/Match': Tag;
   type: T;
 }
 
+/**
+ * Used to create a matcher.
+ * @returns
+ *
+ * @example
+ * ```typescript
+ * export const beFoo = match<'beFoo'>();
+ * export const equal = <U>(y?: U) => match<'equal', U>();
+ * ```
+ */
 export const match = <Tag extends keyof Validator<unknown, unknown>, T = never>() =>
   ({} as Match<Tag, T>);
 

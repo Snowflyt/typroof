@@ -84,7 +84,7 @@ expect<Append<'foo', 'bar'>>().to(extend<string>);
 
 ## Matchers
 
-Matchers are indicators that can be used via `expect<T>(x?: T).to(matcher<...>)` or `expect<T>(x?: T).not.to(matcher<...>)` to assert the type. Typroof provides some built-in matchers, and you can also create your own matchers (see [Custom Matchers](#custom-matchers)).
+Matchers are indicators that can be used via `expect<T>(x?: T).to(matcher<...>)` or `expect<T>(x?: T).not.to(matcher<...>)` to assert the type. Typroof provides some built-in matchers, and you can also create your own matchers (see [Plugin API](#plugin-api)).
 
 For example:
 
@@ -200,14 +200,18 @@ console.log(
 );
 ```
 
-## Custom Matchers
+## Plugin API
+
+Typroof supports plugins to extend its matchers.
 
 Matchers are just indicators to tell Typroof how to assert the type. The process actually involves two steps: The type level validation and the code analysis using [ts-morph](https://github.com/dsherret/ts-morph).
 
 Take a look at how the `equal` matcher is implemented:
 
 ```typescript
-import { match, registerAnalyzer } from 'typroof';
+// `registerAnalyzer` is not actually exported,
+// it is just an example to show how to create custom matchers.
+import { match, registerAnalyzer } from 'typroof/plugin';
 
 // `equal` is a matcher that takes a type argument.
 // If no argument is needed, you can simply use `match<'matcherName'>()`
@@ -238,8 +242,6 @@ declare module 'typroof' {
 }
 
 // The `registerToEqual` function is called somewhere before code analysis is executed.
-// If you need to define custom matchers, you should call the corresponding `registerTo...`
-// function first — The `typroof.config.ts` file is a good place to do this.
 export const registerToEqual = () => {
   // If it is a type level only matcher (i.e. The related validator returns a boolean type),
   // the third argument is a boolean indicating whether the validation step is passed.
@@ -272,8 +274,9 @@ And that is all. As you see here, it is really easy to create custom matchers, a
 Take a look at how `error` is implemented to see how powerful it is:
 
 ```typescript
-import { match, registerAnalyzer } from 'typroof';
-import type { ToAnalyze } from 'typroof';
+import { match, registerAnalyzer } from 'typroof/plugin';
+
+import type { ToAnalyze } from 'typroof/plugin';
 
 export const error = match<'error'>();
 
@@ -318,6 +321,88 @@ export const registerToError = () => {
 };
 ```
 
-If you like, you can even define a matcher to check whether JSDoc information is correctly reserved through a series of really complex generics.
+So how to extend Typroof with your own matchers? The code below shows how to do it:
 
-It is also possible to create an extension library for Typroof, you can guide your users to execute the `registerTo...` functions provided in your library and import validator definitions in their `typroof.config.ts` file.
+```typescript
+// In your entry file, e.g., `index.ts` or `main.ts`.
+declare module 'typroof' {
+  interface Validator<T, U> {
+    // Define your validator here
+    beFoo: T extends 'foo' ? true : false;
+  }
+}
+
+// In your `typroof.config.ts`
+import chalk from 'chalk';
+import { defineConfig } from 'typroof/config';
+
+import type { Plugin } from 'typroof/plugin';
+
+// It is recommended to define the plugin as a factory function
+const foo = (): Plugin => ({
+  // `name` is required, and recommended to be named as `typroof-plugin-*`
+  name: 'typroof-plugin-example',
+  analyzers: {
+    // Just like what you have seen in `registerAnalyzer`
+    beFoo: (actual, _, passed, { not }) => {
+      if (passed) return;
+
+      const actualText = chalk.bold(actual.text);
+      const expectedType = chalk.bold('"foo"');
+      const actualType = chalk.bold(actual.type.getText());
+
+      throw (
+        `Expect ${actualText} ${not ? 'not ' : ''}to be ${expectedType}, ` +
+        `but got ${actualType}.`
+      );
+    },
+  },
+});
+
+export default defineConfig({
+  plugins: [foo()],
+});
+```
+
+If you want to publish your plugin as a library, it is recommended to export the factory function to create the plugin object as the default export, and export the matchers as named exports:
+
+```typescript
+// In your `index.ts`
+import { match } from 'typroof/plugin';
+
+import type { Plugin } from 'typroof/plugin';
+
+declare module 'typroof' {
+  interface Validator<T, U> {
+    beFoo: T extends 'foo' ? true : false;
+  }
+}
+
+const foo = (): Plugin => ({
+  /* ... */
+});
+export default foo;
+
+/**
+ * [Matcher] Expect the type to be `"foo"`.
+ */
+export const beFoo = match<'beFoo'>();
+```
+
+Then your users can use your plugin like this:
+
+```typescript
+// In their `typroof.config.ts`
+import foo from 'typroof-plugin-example';
+
+export default defineConfig({
+  plugins: [foo()],
+});
+
+// And somewhere in their test files
+import { beFoo } from 'typroof-plugin-example';
+
+test('foo', () => {
+  expect<'foo'>().to(beFoo);
+});
+```
