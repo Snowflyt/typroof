@@ -135,7 +135,7 @@ export const expect: <T>(t?: T) => Expect<T> = () => ({
 const currentFilePathName = (() => {
   let result = '';
   try {
-    result = __dirname;
+    result = __filename;
   } catch (error) {
     result = fileURLToPath(import.meta.url);
   }

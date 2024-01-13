@@ -23,7 +23,7 @@ export const it = (name: string, fn: () => void) => test(name, fn);
 const currentFilePathName = (() => {
   let result = '';
   try {
-    result = __dirname;
+    result = __filename;
   } catch (error) {
     result = fileURLToPath(import.meta.url);
   }
