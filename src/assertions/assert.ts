@@ -43,7 +43,6 @@ export const registerBuiltinAnalyzers = (() => {
     if (registered) return;
 
     registerToEqual();
-    registerToCover();
     registerToBeNever();
     registerToBeNull();
     registerToBeNullish();

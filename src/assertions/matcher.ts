@@ -163,5 +163,7 @@ export const registerAnalyzer = <Tag extends keyof Validator<unknown, unknown>>(
   tag: Tag,
   analyzer: Analyzer<Tag>,
 ) => {
+  if (analyzers.has(tag)) throw new Error(`Analyzer for '${tag}' is already registered.`);
+
   analyzers.set(tag, analyzer);
 };
