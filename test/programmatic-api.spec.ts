@@ -18,13 +18,13 @@ const trimIndent = (str: string) => {
 // eslint-disable-next-line no-control-regex
 const cleanAnsi = (str: string) => str.replace(/\u001b\[[0-9;]*m/g, '');
 
-describe('Programmatic API', () => {
-  it('should output the same results as the CLI', async () => {
-    const results = await typroof({
-      testFiles: 'test/programmatic-api-test-proof.ts',
-    });
-    const formattedResults = results.map((r) => formatGroupResult(r.rootGroupResult)).join('\n');
+describe('Programmatic API', async () => {
+  const results = await typroof({
+    testFiles: 'test/programmatic-api-test-proof.ts',
+  });
 
+  it('should output the same results as the CLI', () => {
+    const formattedResults = results.map((r) => formatGroupResult(r.rootGroupResult)).join('\n');
     expect(cleanAnsi(formattedResults)).toEqual(
       trimIndent(`
         ❯ test/programmatic-api-test-proof.ts (3)
@@ -35,7 +35,9 @@ describe('Programmatic API', () => {
             ✔ should accept only strings
       `),
     );
+  });
 
+  it('should output the same summary as the CLI', () => {
     const summary = formatSummary({ groups: results.map((r) => r.rootGroupResult) });
     expect(trimIndent(cleanAnsi(summary))).toEqual(
       trimIndent(`
