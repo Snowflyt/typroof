@@ -3,7 +3,8 @@ import path from 'node:path';
 
 import meow from 'meow';
 
-import { loadConfig } from './config';
+import { registerBuiltinAnalyzers } from './assertions/assert';
+import { loadConfig } from './config-helpers';
 import { createTyproofProject, formatGroupResult, formatSummary, summary } from './test';
 
 const cli = meow(
@@ -52,6 +53,8 @@ const cli = meow(
 
 const cwd = cli.input.length > 0 ? cli.input[0]! : process.cwd();
 const { files: testFiles } = cli.flags;
+
+registerBuiltinAnalyzers();
 
 const project = createTyproofProject({
   tsConfigFilePath: path.join(cwd, 'tsconfig.json'),

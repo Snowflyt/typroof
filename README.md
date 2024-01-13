@@ -163,15 +163,15 @@ Like `cover`, but fails if either the type or the given type is `never` or `any`
 
 ## Configuration
 
-You can create a `typroof.config.ts` file in the root directory of your project to configure Typroof. It should export the configuration object.
+You can create a `typroof.config.ts` file in the root directory of your project to configure Typroof. It should export the configuration object. Typroof exports a `defineConfig` function to help you define the configuration object.
 
 ```typescript
 // typroof.config.ts
-import type { Config } from 'typroof';
+import { defineConfig } from 'typroof/config';
 
-export default {
+export default defineConfig({
   testFiles: '**/*.proof.ts',
-} satisfies Config;
+});
 ```
 
 Don't forget to add your config file to `tsconfig.json`.

@@ -1,3 +1,4 @@
+import { registerBuiltinAnalyzers } from './assertions/assert';
 import { createTyproofProject } from './test';
 
 import type { CheckResult, TyproofProjectOptions } from './test';
@@ -8,6 +9,7 @@ import type { CheckResult, TyproofProjectOptions } from './test';
  * @returns
  */
 export const typroof = (options?: TyproofProjectOptions): CheckResult[] => {
+  registerBuiltinAnalyzers();
   const project = createTyproofProject(options);
   return project.testFiles.map(project.checkTestFile);
 };

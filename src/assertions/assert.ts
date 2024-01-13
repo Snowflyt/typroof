@@ -33,21 +33,33 @@ import type {
 } from '@/tools';
 import type { Project } from 'ts-morph';
 
-/* Register all assertions */
-registerToEqual();
-registerToCover();
-registerToBeNever();
-registerToBeNull();
-registerToBeNullish();
-registerToBeUndefined();
-registerToMatchBoolean();
-registerToBeTrue();
-registerToBeFalse();
-registerToExtend();
-registerToStrictExtend();
-registerToCover();
-registerToStrictCover();
-registerToError();
+/**
+ * Register all built-in analyzers.
+ */
+export const registerBuiltinAnalyzers = (() => {
+  let registered = false;
+
+  return () => {
+    if (registered) return;
+
+    registerToEqual();
+    registerToCover();
+    registerToBeNever();
+    registerToBeNull();
+    registerToBeNullish();
+    registerToBeUndefined();
+    registerToMatchBoolean();
+    registerToBeTrue();
+    registerToBeFalse();
+    registerToExtend();
+    registerToStrictExtend();
+    registerToCover();
+    registerToStrictCover();
+    registerToError();
+
+    registered = true;
+  };
+})();
 
 /**
  * Validators for matchers.
