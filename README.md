@@ -188,7 +188,7 @@ You can invoke the `typroof` CLI directly, or use the `typroof` function in your
 import typroof, { formatGroupResult, formatSummary } from 'typroof';
 
 const startedAt = new Date();
-const results = typroof();
+const results = await typroof();
 const finishedAt = new Date();
 
 for (const result of results) {
