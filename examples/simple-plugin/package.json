@@ -1,6 +1,6 @@
 {
   "name": "typroof-plugin-simple-example",
-  "version": "0.1.0",
+  "version": "0.1.1-dev",
   "private": true,
   "description": "A simple example of a typroof plugin",
   "license": "MIT",
@@ -24,10 +24,10 @@
   },
   "devDependencies": {
     "@types/eslint": "^8.56.2",
-    "@types/node": "^20.11.0",
+    "@types/node": "^20.11.4",
     "@types/prettier": "^2.7.3",
-    "@typescript-eslint/eslint-plugin": "^6.18.1",
-    "@typescript-eslint/parser": "^6.18.1",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
     "cpy-cli": "^5.0.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^8.10.0",
