@@ -176,6 +176,8 @@ export default defineConfig({
 
 Don't forget to add your config file to `tsconfig.json`.
 
+**⚠ Warning:** Make sure not to import value directly from `typroof` in your config file (use `typroof/config`, `typroof/plugin`, etc. instead), otherwise you may get circular dependencies error when Typroof is loading config.
+
 Typroof provides type definitions for the configuration object, so you can get type hints in your editor.
 
 You can use either `.ts`, `.mts`, `.cts`, `.js`, `.mjs` or `.cjs` as the extension of the config file. The priority is `.ts` > `.mts` > `.cts` > `.js` > `.mjs` > `.cjs`.
@@ -363,6 +365,8 @@ export default defineConfig({
   plugins: [foo()],
 });
 ```
+
+**⚠ Warning:** Don’t forget to add `chalk` to your `devDependencies` (or `dependencies` if you’re developing a plugin) in `package.json` to avoid circular dependencies error when Typroof is loading config.
 
 If you want to publish your plugin as a library, it is recommended to export the factory function to create the plugin object as the default export, and export the matchers as named exports:
 
