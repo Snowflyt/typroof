@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { registerToBeAny } from './impl/beAny';
 import { registerToBeFalse } from './impl/beFalse';
 import { registerToBeNever } from './impl/beNever';
 import { registerToBeNull } from './impl/beNull';
@@ -42,19 +43,25 @@ export const registerBuiltinAnalyzers = (() => {
   return () => {
     if (registered) return;
 
+    registerToError();
+
     registerToEqual();
+
+    registerToBeAny();
     registerToBeNever();
     registerToBeNull();
-    registerToBeNullish();
     registerToBeUndefined();
+    registerToBeNullish();
+
     registerToMatchBoolean();
     registerToBeTrue();
     registerToBeFalse();
+
     registerToExtend();
     registerToStrictExtend();
+
     registerToCover();
     registerToStrictCover();
-    registerToError();
 
     registered = true;
   };
