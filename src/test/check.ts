@@ -6,6 +6,8 @@ import type { AnalyzeResult, Assertion, Group, Test } from './analyze';
 import type { TyproofProject } from './project';
 import type { SourceFile } from 'ts-morph';
 
+import { MatchingError } from '@/errors';
+
 export interface GroupResult {
   description: string;
   children: Array<GroupResult | TestResult>;
@@ -55,11 +57,23 @@ export const checkAnalyzeResult = ({
       const testResult: TestResult = { description: child.description, assertionResults: [] };
 
       for (const assertion of child.assertions) {
-        const { actualNode, matcherName, not, passedOrValidationResult, statement, type } =
-          assertion;
+        const {
+          actualNode,
+          matcherName,
+          matcherNode,
+          not,
+          passedOrValidationResult,
+          statement,
+          type,
+        } = assertion;
 
         const analyzer = analyzers.get(matcherName);
-        if (!analyzer) throw new Error(`Can not find analyzer for '${matcherName}'`);
+        if (!analyzer)
+          throw new MatchingError(
+            `${rootGroup.description}:${matcherNode.getStartLineNumber()}:${
+              matcherNode.getStart() - matcherNode.getStartLinePos() + 1
+            } Cannot find analyzer for '${matcherName}'`,
+          );
 
         const actual = {
           text: ts.isTypeNode(actualNode.compilerNode)

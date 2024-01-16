@@ -10,6 +10,8 @@ import { isCallOfSymbol, isCallOfSymbols } from './ts';
 import type { TyproofProject } from './project';
 import type { CallExpression, Diagnostic, Node, SourceFile, Type } from 'ts-morph';
 
+import { AnalyzingError } from '@/errors';
+
 export interface Group {
   description: string;
   children: Array<Group | Test>;
@@ -21,6 +23,7 @@ export interface Test {
 export interface Assertion {
   statement: CallExpression<ts.CallExpression>;
   actualNode: Node<ts.Node>;
+  matcherNode: Node<ts.Node>;
   matcherName: string;
   not: boolean;
   type: Type<ts.Type>;
@@ -114,13 +117,28 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
 
         if (access.getType().getCallSignatures().length === 0) continue;
 
-        const toCall = access.getParentIfKind(ts.SyntaxKind.CallExpression)!;
+        const toCall = access.getParentIfKind(ts.SyntaxKind.CallExpression);
+        if (!toCall) continue;
 
-        const matcher = toCall.getArguments()[0]!;
+        const matcher = toCall.getArguments()[0];
+        if (!matcher)
+          throw new AnalyzingError(
+            `${result.description}:${access.getStartLineNumber()}:${
+              access.getStart() - access.getStartLinePos() + 1
+            } No matcher provided for expect statement`,
+          );
+
         const match =
           matcher.getType().getCallSignatures().length > 0
             ? matcher.getType().getCallSignatures()[0]!.getReturnType()
             : matcher.getType();
+        if (!match.getTypeArguments().length)
+          throw new AnalyzingError(
+            `${result.description}:${matcher.getStartLineNumber()}:${
+              matcher.getStart() - matcher.getStartLinePos() + 1
+            } '${matcher.getText()}' is not a valid matcher`,
+          );
+
         const matcherName = match.getTypeArguments()[0]!.getText().slice(1, -1);
         const type = match.getTypeArguments()[1]!;
         const passedOrValidationResult =
@@ -133,6 +151,7 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
         test.assertions.push({
           statement: toCall,
           actualNode,
+          matcherNode: matcher,
           matcherName,
           not,
           type,

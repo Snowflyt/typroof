@@ -1,6 +1,6 @@
 {
   "name": "typroof-plugin-simple-example",
-  "version": "0.1.1-dev",
+  "version": "0.1.1",
   "private": true,
   "description": "A simple example of a typroof plugin",
   "license": "MIT",
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "chalk": "^5.3.0",
-    "typroof": "^0.2.4"
+    "typroof": "^0.2.5"
   },
   "devDependencies": {
     "@types/eslint": "^8.56.2",
