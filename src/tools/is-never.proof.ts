@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { beFalse, beTrue, describe, expect, it } from 'typroof';
 
 import type { IsNever } from './is-never';
@@ -8,7 +10,6 @@ describe('IsNever', () => {
   });
 
   it('should return `false` for `any`', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<IsNever<any>>().to(beFalse);
   });
 

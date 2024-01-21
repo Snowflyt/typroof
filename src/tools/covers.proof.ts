@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-types */
+
 import { beFalse, beTrue, describe, expect, it } from 'typroof';
 
 import type { Covers, StrictCovers } from './covers';
@@ -12,7 +15,6 @@ describe('Covers', () => {
     expect<Covers<null, null>>().to(beTrue);
     expect<Covers<unknown, unknown>>().to(beTrue);
     expect<Covers<never, never>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<Covers<{}, {}>>().to(beTrue);
   });
 
@@ -36,9 +38,7 @@ describe('Covers', () => {
     expect<Covers<undefined | null, null>>().to(beTrue);
     expect<Covers<readonly string[], string[]>>().to(beTrue);
     expect<Covers<null, never>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<Covers<any, string>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<Covers<string, any>>().to(beTrue);
   });
 });
@@ -52,7 +52,6 @@ describe('StrictCovers', () => {
     expect<StrictCovers<undefined, undefined>>().to(beTrue);
     expect<StrictCovers<null, null>>().to(beTrue);
     expect<StrictCovers<unknown, unknown>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<StrictCovers<{}, {}>>().to(beTrue);
   });
 
@@ -74,12 +73,10 @@ describe('StrictCovers', () => {
     expect<StrictCovers<never, null>>().to(beFalse);
     expect<StrictCovers<never, unknown>>().to(beFalse);
     expect<StrictCovers<never, never>>().to(beFalse);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<StrictCovers<never, {}>>().to(beFalse);
   });
 
   it('should return `false` for `any`', () => {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
     expect<StrictCovers<any, string>>().to(beFalse);
     expect<StrictCovers<any, number>>().to(beFalse);
     expect<StrictCovers<any, boolean>>().to(beFalse);
@@ -87,7 +84,6 @@ describe('StrictCovers', () => {
     expect<StrictCovers<any, null>>().to(beFalse);
     expect<StrictCovers<any, unknown>>().to(beFalse);
     expect<StrictCovers<any, never>>().to(beFalse);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<StrictCovers<any, {}>>().to(beFalse);
 
     expect<StrictCovers<string, any>>().to(beFalse);
@@ -97,8 +93,6 @@ describe('StrictCovers', () => {
     expect<StrictCovers<null, any>>().to(beFalse);
     expect<StrictCovers<unknown, any>>().to(beFalse);
     expect<StrictCovers<never, any>>().to(beFalse);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<StrictCovers<{}, any>>().to(beFalse);
-    /* eslint-enable @typescript-eslint/no-explicit-any */
   });
 });

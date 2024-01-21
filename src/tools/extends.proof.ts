@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { beFalse, beTrue, describe, expect, it } from 'typroof';
 
 import type { Extends, StrictExtends } from './extends';
@@ -18,7 +21,6 @@ describe('Extends', () => {
     expect<Extends<unknown, unknown>>().to(beTrue);
     expect<Extends<never, never>>().to(beTrue);
     expect<Extends<{ foo: 42 }, { foo: 42 }>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<Extends<{}, {}>>().to(beTrue);
     expect<Extends<[], []>>().to(beTrue);
     expect<Extends<readonly [], readonly []>>().to(beTrue);
@@ -26,11 +28,9 @@ describe('Extends', () => {
     expect<Extends<readonly [42, 'foo'], readonly [42, 'foo']>>().to(beTrue);
     expect<Extends<() => void, () => void>>().to(beTrue);
     expect<Extends<() => never, () => never>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<Extends<() => any, () => any>>().to(beTrue);
     expect<Extends<(_1: 42, _2: 'foo') => void, (_1: 42, _2: 'foo') => void>>().to(beTrue);
     expect<Extends<(_1: 42, _2: 'foo') => never, (_1: 42, _2: 'foo') => never>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<Extends<(_1: any, _2: any) => any, (_1: any, _2: any) => any>>().to(beTrue);
   });
 
@@ -43,9 +43,7 @@ describe('Extends', () => {
     expect<Extends<number, 42 | 43>>().to(beFalse);
     expect<Extends<{ foo: 42 | 43 }, object>>().to(beTrue);
     expect<Extends<object, { foo: 42 | 43 }>>().to(beFalse);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<Extends<{ foo: 42 | 43 }, {}>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<Extends<{}, { foo: 42 | 43 }>>().to(beFalse);
   });
 
@@ -73,9 +71,7 @@ describe('Extends', () => {
     expect<Extends<string[], readonly string[]>>().to(beTrue);
     expect<Extends<42, unknown>>().to(beTrue);
     expect<Extends<never, null>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<Extends<string, any>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<Extends<any, string>>().to(beTrue);
   });
 
@@ -104,7 +100,6 @@ describe('Extends', () => {
   });
 
   it('should return `false` for `Extends<any, never>`', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<Extends<any, never>>().to(beFalse);
   });
 });
@@ -118,7 +113,6 @@ describe('StrictExtends', () => {
     expect<StrictExtends<undefined, undefined>>().to(beTrue);
     expect<StrictExtends<null, null>>().to(beTrue);
     expect<StrictExtends<unknown, unknown>>().to(beTrue);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<StrictExtends<{}, {}>>().to(beTrue);
   });
 
@@ -140,12 +134,10 @@ describe('StrictExtends', () => {
     expect<StrictExtends<never, null>>().to(beFalse);
     expect<StrictExtends<never, unknown>>().to(beFalse);
     expect<StrictExtends<never, never>>().to(beFalse);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<StrictExtends<never, {}>>().to(beFalse);
   });
 
   it('should return `false` for `any`', () => {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
     expect<StrictExtends<any, string>>().to(beFalse);
     expect<StrictExtends<any, number>>().to(beFalse);
     expect<StrictExtends<any, boolean>>().to(beFalse);
@@ -153,7 +145,6 @@ describe('StrictExtends', () => {
     expect<StrictExtends<any, null>>().to(beFalse);
     expect<StrictExtends<any, unknown>>().to(beFalse);
     expect<StrictExtends<any, never>>().to(beFalse);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<StrictExtends<any, {}>>().to(beFalse);
 
     expect<StrictExtends<string, any>>().to(beFalse);
@@ -163,8 +154,6 @@ describe('StrictExtends', () => {
     expect<StrictExtends<null, any>>().to(beFalse);
     expect<StrictExtends<unknown, any>>().to(beFalse);
     expect<StrictExtends<never, any>>().to(beFalse);
-    // eslint-disable-next-line @typescript-eslint/ban-types
     expect<StrictExtends<{}, any>>().to(beFalse);
-    /* eslint-enable @typescript-eslint/no-explicit-any */
   });
 });

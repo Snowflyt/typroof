@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { beFalse, beTrue, describe, equal, expect, it } from 'typroof';
 
 import type { MatchesBoolean } from './boolean';
@@ -14,7 +16,6 @@ describe('MatchesBoolean', () => {
   });
 
   it('should return `boolean` for `any`', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<MatchesBoolean<any>>().to(equal<boolean>);
   });
 

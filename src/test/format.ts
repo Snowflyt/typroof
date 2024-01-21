@@ -63,7 +63,7 @@ export const formatGroupResult = (group: GroupResult, indent = 0): string => {
 
   const icon = groupHasFails(group) ? chalk.hex('#808000')('❯') : chalk.green('✔');
   const tests = groupTestCount(group);
-  result += ' '.repeat(indent) + `${icon} ${group.description} ${chalk.dim(`(${tests})`)}\n`;
+  result += ' '.repeat(indent) + `${icon} ${group.description} ${chalk.dim('(' + tests + ')')}\n`;
 
   for (const child of group.children)
     if (isTestResult(child)) result += formatTestResult(child, indent + 2) + '\n';

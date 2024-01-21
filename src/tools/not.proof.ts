@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { beFalse, beTrue, describe, equal, expect, it } from 'typroof';
 
 import type { Not } from './not';
@@ -17,7 +19,6 @@ describe('Not', () => {
   });
 
   it('should return `boolean` for `any`', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<Not<any>>().to(equal<boolean>);
   });
 });

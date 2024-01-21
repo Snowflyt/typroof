@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable sonarjs/no-duplicate-string */
+
 import { beFalse, beTrue, describe, expect, it } from 'typroof';
 
 import type { IsNull, IsNullish, IsUndefined } from './nullish';
@@ -12,7 +15,6 @@ describe('IsUndefined', () => {
   });
 
   it('should return `false` for `any`', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<IsUndefined<any>>().to(beFalse);
   });
 
