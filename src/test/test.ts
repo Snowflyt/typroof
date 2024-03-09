@@ -6,19 +6,19 @@ import type { Project } from 'ts-morph';
 /**
  * Group test cases.
  */
-export const describe: (name: string, fn: () => void) => void = () => {};
+export const describe: (name: string, fn: () => void | Promise<void>) => void = () => {};
 
 /**
  * Create a test case.
  */
-export const test: (name: string, fn: () => void) => void = () => {};
+export const test: (name: string, fn: () => void | Promise<void>) => void = () => {};
 
 /**
  * Alias for `test`.
  *
  * @see {@link test}
  */
-export const it = (name: string, fn: () => void) => test(name, fn);
+export const it = (name: string, fn: () => void | Promise<void>) => test(name, fn);
 
 const currentFilePathName = (() => {
   let result = '';
