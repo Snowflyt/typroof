@@ -35,7 +35,6 @@ describe('IsNull', () => {
   });
 
   it('should return `false` for `any`', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<IsNull<any>>().to(beFalse);
   });
 
@@ -59,7 +58,6 @@ describe('IsNullish', () => {
   });
 
   it('should return `false` for `any`', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect<IsNullish<any>>().to(beFalse);
   });
 

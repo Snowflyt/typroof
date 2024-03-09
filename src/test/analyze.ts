@@ -1,5 +1,3 @@
-/* eslint-disable no-irregular-whitespace */
-
 import path from 'node:path';
 
 import chalk from 'chalk';

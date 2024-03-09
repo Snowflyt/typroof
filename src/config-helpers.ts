@@ -75,15 +75,12 @@ export const compileConfig = async ({
     if (ext === '.mts')
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return (await import(moduleUrl)).default;
-    else if (ext === '.cts')
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      return require(moduleUrl);
+    else if (ext === '.cts') return require(moduleUrl);
     else
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         return (await import(moduleUrl)).default;
       } catch (e) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         return require(moduleUrl);
       }
   } else {

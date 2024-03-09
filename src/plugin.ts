@@ -2,8 +2,6 @@ import type { Analyzer, Match, Validator } from './assertions';
 
 export interface Plugin {
   name: string;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   analyzers: { readonly [P in keyof Validator<unknown, unknown>]?: Analyzer<P> };
 }
 
