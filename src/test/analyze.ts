@@ -127,9 +127,9 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
           );
 
         const match =
-          matcher.getType().getCallSignatures().length > 0
-            ? matcher.getType().getCallSignatures()[0]!.getReturnType()
-            : matcher.getType();
+          matcher.getType().getCallSignatures().length > 0 ?
+            matcher.getType().getCallSignatures()[0]!.getReturnType()
+          : matcher.getType();
         if (!match.getTypeArguments().length)
           throw new AnalyzingError(
             `${result.description}:${matcher.getStartLineNumber()}:${
@@ -140,11 +140,9 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
         const matcherName = match.getTypeArguments()[0]!.getText().slice(1, -1);
         const type = match.getTypeArguments()[1]!;
         const passedOrValidationResult =
-          toCall.getReturnType().getText() === '"pass"'
-            ? true
-            : toCall.getReturnType().getText() === '"fail"'
-            ? false
-            : toCall.getReturnType().getTypeArguments()[0]!;
+          toCall.getReturnType().getText() === '"pass"' ? true
+          : toCall.getReturnType().getText() === '"fail"' ? false
+          : toCall.getReturnType().getTypeArguments()[0]!;
 
         test.assertions.push({
           statement: toCall,

@@ -22,7 +22,7 @@ export interface Match<Tag extends keyof Validator<unknown, unknown>, T = never>
  * ```
  */
 export const match = <Tag extends keyof Validator<unknown, unknown>, T = never>() =>
-  ({} as Match<Tag, T>);
+  ({}) as Match<Tag, T>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const analyzers = new Map<string, Analyzer<any>>();
@@ -82,19 +82,19 @@ export type Analyzer<Tag extends keyof Validator<unknown, unknown>> = (
      * `expect<T>().to(equal<U>)`, then `type` is `U`.
      */
     type: Type<ts.Type>,
-    ...(Validator<unknown, unknown>[Tag] extends ToAnalyze<unknown>
-      ? [
-          /**
-           * The return type of the validator.
-           */
-          validationResult: Type<ts.Type>,
-        ]
-      : [
-          /**
-           * Whether the validator passed.
-           */
-          passed: boolean,
-        ]),
+    ...(Validator<unknown, unknown>[Tag] extends ToAnalyze<unknown> ?
+      [
+        /**
+         * The return type of the validator.
+         */
+        validationResult: Type<ts.Type>,
+      ]
+    : [
+        /**
+         * Whether the validator passed.
+         */
+        passed: boolean,
+      ]),
     /**
      * Meta data of the analyzer function.
      */

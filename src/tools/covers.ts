@@ -19,12 +19,9 @@ export type Covers<T, U> = ((_: [T]) => void) extends (_: [U]) => void ? true : 
  *
  * Signature: `(T, U) -> boolean`
  */
-export type StrictCovers<T, U> = IsNever<T> extends true
-  ? false
-  : IsNever<U> extends true
-  ? false
-  : IsAny<T> extends true
-  ? false
-  : IsAny<U> extends true
-  ? false
+export type StrictCovers<T, U> =
+  IsNever<T> extends true ? false
+  : IsNever<U> extends true ? false
+  : IsAny<T> extends true ? false
+  : IsAny<U> extends true ? false
   : Covers<T, U>;

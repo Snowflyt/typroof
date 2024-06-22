@@ -76,8 +76,9 @@ export const checkAnalyzeResult = ({
           );
 
         const actual = {
-          text: ts.isTypeNode(actualNode.compilerNode)
-            ? actualNode.getText()
+          text:
+            ts.isTypeNode(actualNode.compilerNode) ?
+              actualNode.getText()
             : `typeof ${actualNode.getText()}`,
           type: actualNode.getType(),
           node: actualNode,

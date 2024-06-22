@@ -6,7 +6,10 @@ import type { IsNever } from './is-never';
  *
  * Signature: `T -> boolean`
  */
-export type MatchesBoolean<T> = IsNever<T> extends true ? false : T extends boolean ? true : false;
+export type MatchesBoolean<T> =
+  IsNever<T> extends true ? false
+  : T extends boolean ? true
+  : false;
 
 /**
  * Check whether `T` is `true`.

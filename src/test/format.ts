@@ -109,22 +109,21 @@ export const formatSummary = (options: {
 
   result +=
     chalk.dim(' Test Files  ') +
-    (testFileFailed > 0
-      ? chalk.bold.red(testFileFailed + ' failed') +
-        (groups.length - testFileFailed > 0 ? ' | ' : '')
-      : '') +
-    (groups.length - testFileFailed > 0
-      ? chalk.bold.green(groups.length - testFileFailed + ' passed')
-      : '') +
+    (testFileFailed > 0 ?
+      chalk.bold.red(testFileFailed + ' failed') + (groups.length - testFileFailed > 0 ? ' | ' : '')
+    : '') +
+    (groups.length - testFileFailed > 0 ?
+      chalk.bold.green(groups.length - testFileFailed + ' passed')
+    : '') +
     ' ' +
     chalk.gray(`(${groups.length})`) +
     '\n';
   result +=
     chalk.dim('      Tests  ') +
-    (testFailed > 0
-      ? chalk.bold.red(testFailed + ' failed') +
-        (testCount - testFailed > 0 ? ' ' + chalk.gray('|') + ' ' : '')
-      : '') +
+    (testFailed > 0 ?
+      chalk.bold.red(testFailed + ' failed') +
+      (testCount - testFailed > 0 ? ' ' + chalk.gray('|') + ' ' : '')
+    : '') +
     (testCount - testFailed > 0 ? chalk.bold.green(testCount - testFailed + ' passed') : '') +
     ' ' +
     chalk.gray(`(${testCount})`) +

@@ -19,12 +19,9 @@ export type Extends<T, U> = [T] extends [U] ? true : false;
  *
  * Signature: `(T, U) -> boolean`
  */
-export type StrictExtends<T, U> = IsNever<T> extends true
-  ? false
-  : IsNever<U> extends true
-  ? false
-  : IsAny<T> extends true
-  ? false
-  : IsAny<U> extends true
-  ? false
+export type StrictExtends<T, U> =
+  IsNever<T> extends true ? false
+  : IsNever<U> extends true ? false
+  : IsAny<T> extends true ? false
+  : IsAny<U> extends true ? false
   : Extends<T, U>;

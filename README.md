@@ -224,9 +224,8 @@ export const equal = <U>(y?: U) => match<'equal', U>();
  * Check whether `T` is equal to `U`.
  * It is a utility type used in the type level validation step.
  */
-type Equals<T, U> = (<G>() => G extends T ? 1 : 2) extends <G>() => G extends U ? 1 : 2
-  ? true
-  : false;
+type Equals<T, U> =
+  (<G>() => G extends T ? 1 : 2) extends <G>() => G extends U ? 1 : 2 ? true : false;
 
 // Define how the type level validation step works.
 // If type level validation is the only thing you need to do (e.g., `equal`),

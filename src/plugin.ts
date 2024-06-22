@@ -17,7 +17,7 @@ export interface Plugin {
  */
 // It is also defined in `./assertions/matcher.ts` to avoid circular dependency.
 export const match = <Tag extends keyof Validator<unknown, unknown>, T = never>() =>
-  ({} as Match<Tag, T>);
+  ({}) as Match<Tag, T>;
 
 export type { Match };
 export type { Analyzer, AnalyzerMeta, ToAnalyze } from './assertions';

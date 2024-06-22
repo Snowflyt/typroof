@@ -19,8 +19,7 @@ export type IsNull<T> = Equals<T, null>;
  *
  * Signature: `T -> boolean`
  */
-export type IsNullish<T> = IsUndefined<T> extends true
-  ? true
-  : IsNull<T> extends true
-  ? true
+export type IsNullish<T> =
+  IsUndefined<T> extends true ? true
+  : IsNull<T> extends true ? true
   : Equals<T, null | undefined>;
