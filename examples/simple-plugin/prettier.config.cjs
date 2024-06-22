@@ -5,6 +5,7 @@ const config = {
   arrowParens: 'always',
   bracketSameLine: true,
   bracketSpacing: true,
+  experimentalTernaries: true,
   semi: true,
   singleQuote: true,
   trailingComma: 'all',
