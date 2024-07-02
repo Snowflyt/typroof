@@ -1,6 +1,6 @@
 {
   "name": "typroof",
-  "version": "0.2.8",
+  "version": "0.2.9-dev",
   "private": true,
   "description": "🚀 Revolutionize your TS type testing with a fast, smooth, and flexible WYSIWYG experience!",
   "keywords": [
@@ -44,18 +44,18 @@
   },
   "dependencies": {
     "chalk": "^5.3.0",
-    "esbuild": "^0.21.5",
+    "esbuild": "^0.23.0",
     "get-tsconfig": "^4.7.5",
     "meow": "^13.2.0",
-    "ts-morph": "^22.0.0"
+    "ts-morph": "^23.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
     "@types/eslint": "^8.56.10",
     "@types/lint-staged": "^13.3.0",
-    "@types/node": "^20.14.8",
-    "@typescript-eslint/eslint-plugin": "^7.13.1",
-    "@typescript-eslint/parser": "^7.13.1",
+    "@types/node": "^20.14.9",
+    "@typescript-eslint/eslint-plugin": "^7.15.0",
+    "@typescript-eslint/parser": "^7.15.0",
     "@vitest/coverage-v8": "^1.6.0",
     "@vitest/ui": "^1.6.0",
     "cpy-cli": "^5.0.0",
@@ -70,11 +70,11 @@
     "lint-staged": "^15.2.7",
     "prettier": "^3.3.2",
     "prettier-plugin-packagejson": "^2.5.0",
-    "replace-in-file": "^7.2.0",
+    "replace-in-file": "^8.0.2",
     "rimraf": "^5.0.7",
     "tsc-alias": "^1.8.10",
     "tsx": "^4.15.7",
-    "typescript": "^5.5.2",
+    "typescript": "^5.5.3",
     "vitest": "^1.6.0"
   }
 }
