@@ -3,12 +3,12 @@ import path from 'node:path';
 import chalk from 'chalk';
 import { ts } from 'ts-morph';
 
+import { AnalyzingError } from '../errors';
+
 import { isCallOfSymbol, isCallOfSymbols } from './ts';
 
 import type { TyproofProject } from './project';
 import type { CallExpression, Diagnostic, Node, SourceFile, Type } from 'ts-morph';
-
-import { AnalyzingError } from '@/errors';
 
 export interface Group {
   description: string;

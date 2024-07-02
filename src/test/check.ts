@@ -1,12 +1,11 @@
 import { ts } from 'ts-morph';
 
 import { analyzers } from '../assertions/matcher';
+import { MatchingError } from '../errors';
 
 import type { AnalyzeResult, Assertion, Group, Test } from './analyze';
 import type { TyproofProject } from './project';
 import type { SourceFile } from 'ts-morph';
-
-import { MatchingError } from '@/errors';
 
 export interface GroupResult {
   description: string;

@@ -31,7 +31,7 @@ import type {
   MatchesBoolean,
   StrictCovers,
   StrictExtends,
-} from '@/tools';
+} from '../tools';
 import type { Project } from 'ts-morph';
 
 /**
