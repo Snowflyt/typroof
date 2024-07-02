@@ -10,28 +10,34 @@ import { omit } from './utils/object';
 import type { Validator } from './assertions';
 import type { Config } from './config';
 
-export const loadConfig = async ({ cwd = process.cwd() }: { cwd?: string } = {}): Promise<
-  Omit<Config, 'plugins'>
-> => {
-  const extensions = ['.ts', '.mts', '.cts', '.js', '.mjs', '.cjs'];
-  const configBaseName = 'typroof.config';
+const CONFIG_BASE_NAME = 'typroof.config';
+const SUPPORTED_EXTENSIONS = ['.ts', '.mts', '.cts', '.js', '.mjs', '.cjs'];
+
+export const loadConfig = async ({
+  configPath,
+  cwd = process.cwd(),
+}: { cwd?: string; configPath?: string } = {}): Promise<Omit<Config, 'plugins'>> => {
+  const candidatePaths =
+    configPath ?
+      [path.join(cwd, configPath)]
+    : SUPPORTED_EXTENSIONS.map((ext) => path.join(cwd, `${CONFIG_BASE_NAME}${ext}`));
   const tsConfig = getTsconfig(path.join(cwd, 'tsconfig.json')) ?? {};
 
-  for (const ext of extensions) {
-    const filePath = path.join(cwd, `${configBaseName}${ext}`);
-    if (fs.existsSync(filePath)) {
+  for (const configPath of candidatePaths) {
+    const ext = path.extname(configPath);
+    if (fs.existsSync(configPath)) {
       let config: Config;
       if (ext === '.ts' || ext === '.mts' || ext === '.cts')
-        config = await compileConfig({ filePath, tsConfig });
+        config = await compileConfig({ configPath, tsConfig });
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      else if (ext === '.mjs') config = (await import(filePath)).default;
-      else if (ext === '.cjs') config = require(filePath);
+      else if (ext === '.mjs') config = (await import(configPath)).default;
+      else if (ext === '.cjs') config = require(configPath);
       else
         try {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          config = (await import(filePath)).default;
+          config = (await import(configPath)).default;
         } catch (e) {
-          config = require(filePath);
+          config = require(configPath);
         }
 
       if (config.plugins) {
@@ -52,14 +58,14 @@ export const loadConfig = async ({ cwd = process.cwd() }: { cwd?: string } = {})
 };
 
 export const compileConfig = async ({
-  filePath,
+  configPath,
   tsConfig,
 }: {
-  filePath: string;
+  configPath: string;
   tsConfig: object;
 }): Promise<Config> => {
   const result = await esbuild.build({
-    entryPoints: [filePath],
+    entryPoints: [configPath],
     bundle: true,
     platform: 'node',
     format: 'esm',
@@ -70,8 +76,9 @@ export const compileConfig = async ({
   const { outputFiles } = result;
   if (outputFiles && outputFiles.length > 0) {
     const code = outputFiles[0]!.text;
-    const moduleUrl = `data:text/javascript;charset=utf-8,${encodeURIComponent(code)}`;
-    const ext = path.extname(filePath);
+    const encodedCode = encodeURIComponent(code);
+    const moduleUrl = `data:text/javascript;charset=utf-8,${encodedCode}`;
+    const ext = path.extname(configPath);
     if (ext === '.mts')
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return (await import(moduleUrl)).default;

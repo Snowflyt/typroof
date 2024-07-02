@@ -20,11 +20,14 @@ const cli = meow(
 
   Options
     --files      -f  Glob of files to test         [Default: '/path/proof/**/*.{ts,tsx}' or '/**/*.proof.{ts,tsx}']
+    --config     -c  Path to a typroof config file [Default: '/path/typroof.config.{ts,mts,cts,js,mjs,cjs}']
 
   Examples
     $ typroof /path/to/project
 
     $ typroof --files /test/some/folder/*.ts --files /test/other/folder/*.tsx
+
+    $ typroof --config ../typroof.config.ts
 
     $ typroof
 
@@ -46,19 +49,23 @@ const cli = meow(
         shortFlag: 'f',
         isMultiple: true,
       },
+      config: {
+        type: 'string',
+        shortFlag: 'c',
+      },
     },
     importMeta: import.meta,
   },
 );
 
 const cwd = cli.input.length > 0 ? cli.input[0]! : process.cwd();
-const { files: testFiles } = cli.flags;
+const { config: configPath, files: testFiles } = cli.flags;
 
 registerBuiltinAnalyzers();
 
 const project = createTyproofProject({
   tsConfigFilePath: path.join(cwd, 'tsconfig.json'),
-  ...(await loadConfig({ cwd })),
+  ...(await loadConfig({ cwd, configPath })),
   ...(testFiles && testFiles.length > 0 && { testFiles }),
 });
 
