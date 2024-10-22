@@ -1,6 +1,6 @@
 {
   "name": "typroof",
-  "version": "0.2.10-dev",
+  "version": "0.2.10",
   "private": true,
   "description": "🚀 Revolutionize your TS type testing with a fast, smooth, and flexible WYSIWYG experience!",
   "keywords": [
@@ -10,13 +10,13 @@
     "check",
     "static analysis"
   ],
-  "homepage": "https://github.com/Snowfly-T/typroof",
+  "homepage": "https://github.com/Snowflyt/typroof",
   "bugs": {
-    "url": "https://github.com/Snowfly-T/typroof/issues"
+    "url": "https://github.com/Snowflyt/typroof/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Snowfly-T/typroof"
+    "url": "https://github.com/Snowflyt/typroof"
   },
   "license": "MIT",
   "author": "Snowflyt <gaoge011022@163.com>",
