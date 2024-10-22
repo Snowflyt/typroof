@@ -2,7 +2,6 @@ import chalk from 'chalk';
 
 import { match, registerAnalyzer } from '../matcher';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { cover } from './cover';
 
 /**
@@ -22,7 +21,6 @@ import type { cover } from './cover';
  */
 export const strictCover = <U>(
   // @ts-expect-error - `y` is used only for type inference
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   y?: U,
 ) => match<'strictCover', U>();
 

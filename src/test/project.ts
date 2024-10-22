@@ -18,13 +18,9 @@ export interface TyproofProject extends Project {
   readonly cachedPreEmitDiagnostics: readonly Diagnostic<ts.Diagnostic>[];
   readonly testFiles: readonly SourceFile[];
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
   readonly getExpectSymbol: () => Symbol;
-  // eslint-disable-next-line @typescript-eslint/ban-types
   readonly getDescribeSymbol: () => Symbol;
-  // eslint-disable-next-line @typescript-eslint/ban-types
   readonly getItSymbol: () => Symbol;
-  // eslint-disable-next-line @typescript-eslint/ban-types
   readonly getTestSymbol: () => Symbol;
 
   readonly checkTestFile: (file: SourceFile) => CheckResult;

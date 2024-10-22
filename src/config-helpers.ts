@@ -31,12 +31,14 @@ export const loadConfig = async ({
         config = await compileConfig({ configPath, tsConfig });
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       else if (ext === '.mjs') config = (await import(configPath)).default;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       else if (ext === '.cjs') config = require(configPath);
       else
         try {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           config = (await import(configPath)).default;
         } catch (e) {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
           config = require(configPath);
         }
 
@@ -82,12 +84,14 @@ export const compileConfig = async ({
     if (ext === '.mts')
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return (await import(moduleUrl)).default;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     else if (ext === '.cts') return require(moduleUrl);
     else
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         return (await import(moduleUrl)).default;
       } catch (e) {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         return require(moduleUrl);
       }
   } else {

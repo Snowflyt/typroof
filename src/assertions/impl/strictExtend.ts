@@ -2,7 +2,6 @@ import chalk from 'chalk';
 
 import { match, registerAnalyzer } from '../matcher';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { extend } from './extend';
 
 /**
@@ -22,7 +21,6 @@ import type { extend } from './extend';
  */
 export const strictExtend = <U>(
   // @ts-expect-error - `y` is used only for type inference
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   y?: U,
 ) => match<'strictExtend', U>();
 

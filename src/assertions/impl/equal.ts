@@ -16,7 +16,6 @@ import { match, registerAnalyzer } from '../matcher';
  */
 export const equal = <U>(
   // @ts-expect-error - `y` is used only for type inference
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   y?: U,
 ) => match<'equal', U>();
 

@@ -22,13 +22,20 @@ const config = {
     tsconfigRootDir: __dirname,
   },
   ignorePatterns: ['!.lintstagedrc.js'],
-  plugins: ['sonarjs', 'sort-destructure-keys'],
+  plugins: ['sort-destructure-keys'],
   rules: {
-    '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+    '@typescript-eslint/consistent-type-imports': [
+      'error',
+      { prefer: 'type-imports', disallowTypeAnnotations: false },
+    ],
+    '@typescript-eslint/no-empty-object-type': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-unsafe-argument': 'off',
+    '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
     '@typescript-eslint/no-unsafe-return': 'off',
-    '@typescript-eslint/no-unsafe-assignment': 'off',
+    '@typescript-eslint/no-unused-vars': 'off', // Already covered by TypeScript
+    '@typescript-eslint/only-throw-error': 'off',
     'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
     'import/namespace': 'off',
     'import/no-unresolved': 'off',
