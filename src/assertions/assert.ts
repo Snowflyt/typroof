@@ -102,6 +102,9 @@ export interface Expect<T> {
       match: Validator<T, U>[Tag] extends true ? Match<Tag, U> : never,
     ): 'pass';
     <Tag extends keyof Validator<unknown, unknown>, U>(
+      match: Validator<T, U>[Tag] extends ToAnalyze<unknown> ? () => Match<Tag, U> : never,
+    ): Validator<T, U>[Tag];
+    <Tag extends keyof Validator<unknown, unknown>, U>(
       match: Validator<T, U>[Tag] extends ToAnalyze<unknown> ? Match<Tag, U> : never,
     ): Validator<T, U>[Tag];
   };
@@ -114,6 +117,9 @@ export interface Expect<T> {
       <Tag extends keyof Validator<unknown, unknown>, U>(
         match: Validator<T, U>[Tag] extends false ? Match<Tag, U> : never,
       ): 'pass';
+      <Tag extends keyof Validator<unknown, unknown>, U>(
+        match: Validator<T, U>[Tag] extends ToAnalyze<unknown> ? () => Match<Tag, U> : never,
+      ): Validator<T, U>[Tag];
       <Tag extends keyof Validator<unknown, unknown>, U>(
         match: Validator<T, U>[Tag] extends ToAnalyze<unknown> ? Match<Tag, U> : never,
       ): Validator<T, U>[Tag];
