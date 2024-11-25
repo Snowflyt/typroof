@@ -6,7 +6,7 @@ export interface ToAnalyze<T = never> {
   'typroof/ToAnalyze': T;
 }
 
-export interface Match<Tag extends keyof Validator<unknown, unknown>, T = never> {
+export interface Match<Tag extends keyof Validator<unknown, unknown, boolean>, T = never> {
   'typroof/Match': Tag;
   type: T;
 }
@@ -21,7 +21,7 @@ export interface Match<Tag extends keyof Validator<unknown, unknown>, T = never>
  * export const equal = <U>(y?: U) => match<'equal', U>();
  * ```
  */
-export const match = <Tag extends keyof Validator<unknown, unknown>, T = never>() =>
+export const match = <Tag extends keyof Validator<unknown, unknown, boolean>, T = never>() =>
   ({}) as Match<Tag, T>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,7 +71,7 @@ export interface AnalyzerMeta {
 /**
  * An analyzer function.
  */
-export type Analyzer<Tag extends keyof Validator<unknown, unknown>> = (
+export type Analyzer<Tag extends keyof Validator<unknown, unknown, boolean>> = (
   ...args: [
     /**
      * The type passed to `expect`. For example, if `expect<T>()` is called, then `actual` is `T`.
@@ -82,7 +82,7 @@ export type Analyzer<Tag extends keyof Validator<unknown, unknown>> = (
      * `expect<T>().to(equal<U>)`, then `type` is `U`.
      */
     type: Type<ts.Type>,
-    ...(Validator<unknown, unknown>[Tag] extends ToAnalyze<unknown> ?
+    ...(Validator<unknown, unknown, boolean>[Tag] extends ToAnalyze<unknown> ?
       [
         /**
          * The return type of the validator.
@@ -167,7 +167,7 @@ export type Analyzer<Tag extends keyof Validator<unknown, unknown>> = (
  * };
  * ```
  */
-export const registerAnalyzer = <Tag extends keyof Validator<unknown, unknown>>(
+export const registerAnalyzer = <Tag extends keyof Validator<unknown, unknown, boolean>>(
   tag: Tag,
   analyzer: Analyzer<Tag>,
 ) => {

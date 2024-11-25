@@ -1,3 +1,5 @@
+export type { Stringify, StringifyOptions, StringifyOptionsDefault } from './stringify';
+
 export type * from './boolean';
 export type * from './covers';
 export type * from './equals';

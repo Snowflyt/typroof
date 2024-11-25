@@ -51,6 +51,11 @@ import type { Append, Prepend } from './string-utils';
 
 test('Append', () => {
   expect<Append<'foo', 'bar'>>().to(equal<'foobar'>);
+  // If you write an assertion that fails, you can immediately see the error message by TypeScript:
+  // expect<Append<'foo', 'bar'>>().to(equal<'foo'>);
+  // //                                ~~~~~~~~~~~~
+  // //            Argument of type '...' is not assignable to parameter
+  // //         of type '"Expect `'foobar'` to equal `'foo'`, but does not"'
   expect<Append<'foo', 'bar'>>().to(extend<string>);
   expect<Append<'foo', 'bar'>>().not.to(extend<number>);
   expect(append('foo', 'bar')).to(equal('foobar' as const));
@@ -272,7 +277,36 @@ export const registerToEqual = () => {
 
 And that is all. As you see here, it is really easy to create custom matchers, and highly customizable powered by ts-morph.
 
-Take a look at how `error` is implemented to see how powerful it is:
+Typroof automatically generates a compile-time error message if the assertion fails:
+
+```typescript
+expect<Append<'foo', 'bar'>>().to(equal<'foo'>);
+//                                ~~~~~~~~~~~~
+//            Argument of type '...' is not assignable to parameter
+//             of type "Validation failed: equal<'foobar', 'foo'>"
+```
+
+But if you want a more readable error message, you can change the validator to return a string instead of a boolean if the assertion fails:
+
+```typescript
+import type { Stringify } from 'typroof';
+
+declare module 'typroof' {
+  interface Validator<T, U, Not extends boolean> {
+    // `Not` is `true` if `.not` is used, otherwise `false`.
+    equal: Not extends false ?
+      // If `.not` is not used, return a string as the error message if `T` is not equal to `U`
+      Equals<T, U> extends true ?
+        true
+      : `Expect \`${Stringify<T>}\` to equal \`${Stringify<U>}\`, but does not`
+    : // If `.not` is used, return a string as the error message if `T` is equal to `U`
+    Equals<T, U> extends false ? false
+    : `Expect the type not to equal \`${Stringify<U>}\`, but does`;
+  }
+}
+```
+
+Now let’s take a look at how `error` is implemented:
 
 ```typescript
 import { match, registerAnalyzer } from 'typroof/plugin';

@@ -46,7 +46,7 @@ export const loadConfig = async ({
         for (const plugin of config.plugins) {
           if (plugin.analyzers)
             for (const [key, analyzer] of Object.entries(plugin.analyzers))
-              registerAnalyzer(key as keyof Validator<unknown, unknown>, analyzer);
+              registerAnalyzer(key as keyof Validator<unknown, unknown, boolean>, analyzer);
         }
 
         return omit(config, 'plugins');

@@ -31,6 +31,7 @@ import type {
   MatchesBoolean,
   StrictCovers,
   StrictExtends,
+  Stringify,
 } from '../tools';
 import type { Project } from 'ts-morph';
 
@@ -70,60 +71,111 @@ export const registerBuiltinAnalyzers = (() => {
 /**
  * Validators for matchers.
  */
-export interface Validator<T = unknown, U = unknown> {
+export interface Validator<T = unknown, U = unknown, Not extends boolean = boolean> {
   error: ToAnalyze;
 
-  equal: Equals<T, U>;
+  equal: Not extends false ?
+    Equals<T, U> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to equal \`${Stringify<U>}\`, but does not`
+  : Equals<T, U> extends false ? false
+  : `Expect the type not to equal \`${Stringify<U>}\`, but does`;
 
-  beAny: IsAny<T>;
-  beNever: IsNever<T>;
-  beNull: IsNull<T>;
-  beUndefined: IsUndefined<T>;
-  beNullish: IsNullish<T>;
+  beAny: Not extends false ?
+    IsAny<T> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to be \`any\`, but is not`
+  : IsAny<T> extends false ? false
+  : `Expect the type not to be \`any\`, but is`;
+  beNever: Not extends false ?
+    IsNever<T> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to be \`never\`, but is not`
+  : IsNever<T> extends false ? false
+  : `Expect the type not to be \`never\`, but is`;
+  beNull: Not extends false ?
+    IsNull<T> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to be \`null\`, but is not`
+  : IsNull<T> extends false ? false
+  : `Expect the type not to be \`null\`, but is`;
+  beUndefined: Not extends false ?
+    IsUndefined<T> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to be \`undefined\`, but is not`
+  : IsUndefined<T> extends false ? false
+  : `Expect the type not to be \`undefined\`, but is`;
+  beNullish: Not extends false ?
+    IsNullish<T> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to be \`null\`, \`undefined\` or \`null | undefined\`, but is not`
+  : IsNullish<T> extends false ? false
+  : `Expect the type not to be \`null\`, \`undefined\` or \`null | undefined\`, but is`;
 
-  matchBoolean: MatchesBoolean<T>;
-  beTrue: IsTrue<T>;
-  beFalse: IsFalse<T>;
+  matchBoolean: Not extends false ?
+    MatchesBoolean<T> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to be boolean, but is not`
+  : MatchesBoolean<T> extends false ? false
+  : `Expect the type not to be boolean, but is`;
+  beTrue: Not extends false ?
+    IsTrue<T> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to be \`true\`, but is not`
+  : IsTrue<T> extends false ? false
+  : `Expect the type not to be \`true\`, but is`;
+  beFalse: Not extends false ?
+    IsFalse<T> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to be \`false\`, but is not`
+  : IsFalse<T> extends false ? false
+  : `Expect the type not to be \`false\`, but is`;
 
-  extend: Extends<T, U>;
-  strictExtend: StrictExtends<T, U>;
+  extend: Not extends false ?
+    Extends<T, U> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to extend \`${Stringify<U>}\`, but does not`
+  : Extends<T, U> extends false ? false
+  : `Expect \`${Stringify<T>}\` not to extend \`${Stringify<U>}\`, but does`;
+  strictExtend: Not extends false ?
+    StrictExtends<T, U> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to strictly extend \`${Stringify<U>}\`, but does not`
+  : StrictExtends<T, U> extends false ? false
+  : `Expect \`${Stringify<T>}\` not to strictly extend \`${Stringify<U>}\`, but does`;
 
-  cover: Covers<T, U>;
-  strictCover: StrictCovers<T, U>;
+  cover: Not extends false ?
+    Covers<T, U> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to cover \`${Stringify<U>}\`, but does not`
+  : Covers<T, U> extends false ? false
+  : `Expect \`${Stringify<T>}\` not to cover \`${Stringify<U>}\`, but does`;
+  strictCover: Not extends false ?
+    StrictCovers<T, U> extends true ?
+      true
+    : `Expect \`${Stringify<T>}\` to strictly cover \`${Stringify<U>}\`, but does not`
+  : StrictCovers<T, U> extends false ? false
+  : `Expect \`${Stringify<T>}\` not to strictly cover \`${Stringify<U>}\`, but does`;
 }
 
 export interface Expect<T> {
-  to: {
-    (match: never): 'fail';
-    <Tag extends keyof Validator<unknown, unknown>, U>(
-      match: Validator<T, U>[Tag] extends true ? () => Match<Tag, U> : never,
-    ): 'pass';
-    <Tag extends keyof Validator<unknown, unknown>, U>(
-      match: Validator<T, U>[Tag] extends true ? Match<Tag, U> : never,
-    ): 'pass';
-    <Tag extends keyof Validator<unknown, unknown>, U>(
-      match: Validator<T, U>[Tag] extends ToAnalyze<unknown> ? () => Match<Tag, U> : never,
-    ): Validator<T, U>[Tag];
-    <Tag extends keyof Validator<unknown, unknown>, U>(
-      match: Validator<T, U>[Tag] extends ToAnalyze<unknown> ? Match<Tag, U> : never,
-    ): Validator<T, U>[Tag];
-  };
+  to: <Tag extends keyof Validator<unknown, unknown, false>, U>(
+    match: Validator<T, U, false>[Tag] extends true | ToAnalyze<unknown> ?
+      (() => Match<Tag, U>) | Match<Tag, U>
+    : Validator<T, U, false>[Tag] extends string ? Validator<T, U, false>[Tag]
+    : `Validation failed: ${Tag}<${Stringify<T>}, ${Stringify<U>}>`,
+  ) => Validator<T, U, false>[Tag] extends true ? 'pass'
+  : Validator<T, U, false>[Tag] extends ToAnalyze<unknown> ? Validator<T, U, false>[Tag]
+  : 'fail';
   not: {
-    to: {
-      (match: never): 'fail';
-      <Tag extends keyof Validator<unknown, unknown>, U>(
-        match: Validator<T, U>[Tag] extends false ? () => Match<Tag, U> : never,
-      ): 'pass';
-      <Tag extends keyof Validator<unknown, unknown>, U>(
-        match: Validator<T, U>[Tag] extends false ? Match<Tag, U> : never,
-      ): 'pass';
-      <Tag extends keyof Validator<unknown, unknown>, U>(
-        match: Validator<T, U>[Tag] extends ToAnalyze<unknown> ? () => Match<Tag, U> : never,
-      ): Validator<T, U>[Tag];
-      <Tag extends keyof Validator<unknown, unknown>, U>(
-        match: Validator<T, U>[Tag] extends ToAnalyze<unknown> ? Match<Tag, U> : never,
-      ): Validator<T, U>[Tag];
-    };
+    to: <Tag extends keyof Validator<unknown, unknown, true>, U>(
+      match: Validator<T, U, true>[Tag] extends false | ToAnalyze<unknown> ?
+        (() => Match<Tag, U>) | Match<Tag, U>
+      : Validator<T, U, true>[Tag] extends string ? Validator<T, U, true>[Tag]
+      : `Validation failed: not ${Tag}<${Stringify<T>}, ${Stringify<U>}>`,
+    ) => Validator<T, U, true>[Tag] extends false ? 'pass'
+    : Validator<T, U, true>[Tag] extends ToAnalyze<unknown> ? Validator<T, U, false>[Tag]
+    : 'fail';
   };
 }
 
