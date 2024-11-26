@@ -7,9 +7,7 @@ export const foo = (): Plugin => ({
   name: 'typroof-plugin-example',
   analyzers: {
     // Just like what you have seen in `registerAnalyzer`
-    beFoo: (actual, _, passed, { not }) => {
-      if (passed) return;
-
+    beFoo: (actual, _expected, { not }) => {
       const actualText = chalk.bold(actual.text);
       const expectedType = chalk.bold('"foo"');
       const actualType = chalk.bold(actual.type.getText());

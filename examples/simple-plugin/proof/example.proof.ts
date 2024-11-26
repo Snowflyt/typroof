@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { expect, test } from 'typroof';
 
 import { beFoo } from '../src';

@@ -2,7 +2,7 @@
 
 /* eslint-env node */
 
-/** @type {import('eslint').Linter.Config} */
+/** @satisfies {import('eslint').Linter.Config} */
 const config = {
   root: true,
   extends: [
@@ -12,6 +12,7 @@ const config = {
     'plugin:import/recommended',
     'plugin:import/typescript',
     'plugin:prettier/recommended',
+    'plugin:sonarjs/recommended',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -20,13 +21,20 @@ const config = {
     project: ['./tsconfig.json', './tsconfig.eslint.json'],
     tsconfigRootDir: __dirname,
   },
+  ignorePatterns: ['!.lintstagedrc.js'],
   plugins: ['sort-destructure-keys'],
   rules: {
-    '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+    '@typescript-eslint/array-type': ['error', { default: 'array' }],
+    '@typescript-eslint/consistent-type-imports': [
+      'error',
+      { prefer: 'type-imports', disallowTypeAnnotations: false },
+    ],
+    '@typescript-eslint/no-empty-object-type': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
     '@typescript-eslint/no-unsafe-return': 'off',
-    '@typescript-eslint/no-unsafe-assignment': 'off',
+    '@typescript-eslint/no-unused-vars': 'off', // Already covered by `tsconfig.json`
+    '@typescript-eslint/only-throw-error': 'off',
     'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
     'import/namespace': 'off',
     'import/no-unresolved': 'off',
@@ -39,6 +47,9 @@ const config = {
       },
     ],
     'no-undef': 'off',
+    'object-shorthand': 'error',
+    'sonarjs/cognitive-complexity': 'off',
+    'sonarjs/no-duplicate-string': 'off',
     'sort-destructure-keys/sort-destructure-keys': 'error',
     'sort-imports': [
       'error',
@@ -50,6 +61,15 @@ const config = {
       },
     ],
   },
+  overrides: [
+    {
+      files: ['*.proof.ts'],
+      rules: {
+        '@typescript-eslint/ban-ts-comment': 'off',
+      },
+    },
+  ],
+  reportUnusedDisableDirectives: true,
 };
 
 module.exports = config;
