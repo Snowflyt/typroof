@@ -33,9 +33,7 @@ export const cover = <U>(
 ) => match<'cover', U>();
 
 export const registerToCover = () => {
-  registerAnalyzer('cover', (actual, expected, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('cover', (actual, expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType = chalk.bold(expected.getText());
     const actualType = chalk.bold(actual.type.getText());

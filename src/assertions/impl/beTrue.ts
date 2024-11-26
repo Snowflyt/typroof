@@ -19,9 +19,7 @@ import { match, registerAnalyzer } from '../matcher';
 export const beTrue = match<'beTrue'>();
 
 export const registerToBeTrue = () => {
-  registerAnalyzer('beTrue', (actual, _, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('beTrue', (actual, _expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType = chalk.bold('true');
     const actualType = chalk.bold(actual.type.getText());

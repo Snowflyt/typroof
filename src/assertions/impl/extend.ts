@@ -32,9 +32,7 @@ export const extend = <U>(
 ) => match<'extend', U>();
 
 export const registerToExtend = () => {
-  registerAnalyzer('extend', (actual, expected, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('extend', (actual, expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType = chalk.bold(expected.getText());
     const actualType = chalk.bold(actual.type.getText());

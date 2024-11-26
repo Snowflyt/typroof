@@ -24,8 +24,7 @@ export interface Match<Tag extends keyof Validator<unknown, unknown, boolean>, T
 export const match = <Tag extends keyof Validator<unknown, unknown, boolean>, T = never>() =>
   ({}) as Match<Tag, T>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const analyzers = new Map<string, Analyzer<any>>();
+export const analyzers = new Map<string, Analyzer>();
 
 interface Actual {
   /**
@@ -46,6 +45,11 @@ interface Actual {
 }
 
 export interface AnalyzerMeta {
+  /**
+   * The return type of the validator.
+   */
+  validationResult?: Type<ts.Type>;
+
   /**
    * The typroof project.
    */
@@ -71,35 +75,20 @@ export interface AnalyzerMeta {
 /**
  * An analyzer function.
  */
-export type Analyzer<Tag extends keyof Validator<unknown, unknown, boolean>> = (
-  ...args: [
-    /**
-     * The type passed to `expect`. For example, if `expect<T>()` is called, then `actual` is `T`.
-     */
-    actual: Actual,
-    /**
-     * The type argument passed to the matcher. For example, if the method is
-     * `expect<T>().to(equal<U>)`, then `type` is `U`.
-     */
-    type: Type<ts.Type>,
-    ...(Validator<unknown, unknown, boolean>[Tag] extends ToAnalyze<unknown> ?
-      [
-        /**
-         * The return type of the validator.
-         */
-        validationResult: Type<ts.Type>,
-      ]
-    : [
-        /**
-         * Whether the validator passed.
-         */
-        passed: boolean,
-      ]),
-    /**
-     * Meta data of the analyzer function.
-     */
-    meta: AnalyzerMeta,
-  ]
+export type Analyzer = (
+  /**
+   * The type passed to `expect`. For example, if `expect<T>()` is called, then `actual` is `T`.
+   */
+  actual: Actual,
+  /**
+   * The type argument passed to the matcher. For example, if the method is
+   * `expect<T>().to(equal<U>)`, then `type` is `U`.
+   */
+  expectedType: Type<ts.Type>,
+  /**
+   * Meta data of the analyzer function.
+   */
+  meta: AnalyzerMeta,
 ) => void;
 
 /**
@@ -169,7 +158,7 @@ export type Analyzer<Tag extends keyof Validator<unknown, unknown, boolean>> = (
  */
 export const registerAnalyzer = <Tag extends keyof Validator<unknown, unknown, boolean>>(
   tag: Tag,
-  analyzer: Analyzer<Tag>,
+  analyzer: Analyzer,
 ) => {
   if (analyzers.has(tag)) throw new Error(`Analyzer for '${tag}' is already registered.`);
 

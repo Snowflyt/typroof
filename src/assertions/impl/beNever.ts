@@ -15,9 +15,7 @@ import { match, registerAnalyzer } from '../matcher';
 export const beNever = match<'beNever'>();
 
 export const registerToBeNever = () => {
-  registerAnalyzer('beNever', (actual, _, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('beNever', (actual, _expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType = chalk.bold('never');
     const actualType = chalk.bold(actual.type.getText());

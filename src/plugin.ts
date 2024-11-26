@@ -2,7 +2,7 @@ import type { Analyzer, Match, Validator } from './assertions';
 
 export interface Plugin {
   name: string;
-  analyzers: { readonly [P in keyof Validator<unknown, unknown>]?: Analyzer<P> };
+  analyzers: { readonly [P in keyof Validator<unknown, unknown>]?: Analyzer };
 }
 
 /**
@@ -19,5 +19,5 @@ export interface Plugin {
 export const match = <Tag extends keyof Validator<unknown, unknown>, T = never>() =>
   ({}) as Match<Tag, T>;
 
-export type { Match };
 export type { Analyzer, AnalyzerMeta, ToAnalyze } from './assertions';
+export type { Match };

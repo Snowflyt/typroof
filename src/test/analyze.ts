@@ -24,7 +24,7 @@ export interface Assertion {
   matcherNode: Node<ts.Node>;
   matcherName: string;
   not: boolean;
-  type: Type<ts.Type>;
+  expectedType: Type<ts.Type>;
   passedOrValidationResult: boolean | Type<ts.Type>;
 }
 
@@ -138,7 +138,7 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
           );
 
         const matcherName = match.getTypeArguments()[0]!.getText().slice(1, -1);
-        const type = match.getTypeArguments()[1]!;
+        const expectedType = match.getTypeArguments()[1]!;
         const passedOrValidationResult =
           toCall.getReturnType().getText() === '"pass"' ? true
           : toCall.getReturnType().getText() === '"fail"' ? false
@@ -150,7 +150,7 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
           matcherNode: matcher,
           matcherName,
           not,
-          type,
+          expectedType,
           passedOrValidationResult,
         });
       }

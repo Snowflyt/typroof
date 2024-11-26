@@ -15,9 +15,7 @@ import { match, registerAnalyzer } from '../matcher';
 export const beUndefined = match<'beUndefined'>();
 
 export const registerToBeUndefined = () => {
-  registerAnalyzer('beUndefined', (actual, _, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('beUndefined', (actual, _expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType = chalk.bold('undefined');
     const actualType = chalk.bold(actual.type.getText());

@@ -18,7 +18,7 @@ import { match, registerAnalyzer } from '../matcher';
 export const error = match<'error'>();
 
 export const registerToError = () => {
-  registerAnalyzer('error', (actual, _1, _2, { diagnostics, not, statement }) => {
+  registerAnalyzer('error', (actual, _expected, { diagnostics, not, statement }) => {
     const diagnostic = diagnostics.find((diagnostic) => {
       const start = diagnostic.getStart();
       if (!start) return false;

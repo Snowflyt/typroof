@@ -19,9 +19,7 @@ import { match, registerAnalyzer } from '../matcher';
 export const matchBoolean = match<'matchBoolean'>();
 
 export const registerToMatchBoolean = () => {
-  registerAnalyzer('matchBoolean', (actual, _, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('matchBoolean', (actual, _expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType = chalk.bold('true, false or boolean');
     const actualType = chalk.bold(actual.type.getText());

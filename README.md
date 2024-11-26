@@ -233,7 +233,7 @@ type Equals<T, U> =
   (<G>() => G extends T ? 1 : 2) extends <G>() => G extends U ? 1 : 2 ? true : false;
 
 // Define how the type level validation step works.
-// If type level validation is the only thing you need to do (e.g., `equal`),
+// If type-level validation is the only thing you need to do (e.g., `equal`),
 // it should return a boolean type.
 // Otherwise, it should return a `ToAnalyze<SomeType>`, e.g. `error` returns
 // `ToAnalyze<never>`, the `ToAnalyze` means to determine whether the assertion
@@ -247,17 +247,20 @@ declare module 'typroof' {
   }
 }
 
-// The `registerToEqual` function is called somewhere before code analysis is executed.
+// The `registerToEqual` helper function should be called somewhere before code analysis is
+// executed to register the corresponding analyzer for the `equal` matcher.
 export const registerToEqual = () => {
-  // If it is a type level only matcher (i.e. The related validator returns a boolean type),
-  // the third argument is a boolean indicating whether the validation step is passed.
-  // Otherwise (i.e. The related validator returns a `ToAnalyze<SomeType>`), the third
-  // argument is a ts-morph `Type` object representing the type to analyze, e.g., `error`
-  // returns `ToAnalyze<never>`, so the third argument is a `Type` object representing `never`.
-  registerAnalyzer('equal', (actual, expected, passed, { not }) => {
-    if (passed) return;
-
-    // Here `equal` is a type level only assertion, so we just need to report the error.
+  // The registered analyzer is called when the type-level validator does not evaluate to
+  // `true` (i.e, `false` or `ToAnalyze<SomeType>`).
+  // If the validator evaluates to `ToAnalyze<SomeType>`, the `SomeType` object will be
+  // accessible as the `validationResult` property in the third argument of the analyzer
+  // as a `Type<ts.Type>` object.
+  // Here, since `equal` is a type-level only matcher, so the analyzer is only used to
+  // report the error message, and `validationResult` is not used, but it can be useful
+  // if you are implementing a matcher like `haveJSDoc` that needs to analyze the type
+  // using ts-morph.
+  registerAnalyzer('equal', (actual, expected, { not, validationResult }) => {
+    // Here `equal` is a type-level only assertion, so we just need to report the error.
     // But you can do anything you want here, e.g., `error` checks if the type emits an
     // error. The fourth argument provides necessary metadata for you to achieve almost
     // anything you can via ts-morph.
@@ -322,7 +325,7 @@ declare module 'typroof' {
 }
 
 export const registerToError = () => {
-  registerAnalyzer('error', (actual, _1, _2, { diagnostics, not, statement }) => {
+  registerAnalyzer('error', (actual, _expected, { diagnostics, not, statement }) => {
     const diagnostic = diagnostics.find((diagnostic) => {
       const start = diagnostic.getStart();
       if (!start) return false;
@@ -361,9 +364,14 @@ So how to extend Typroof with your own matchers? The code below shows how to do 
 ```typescript
 // In your entry file, e.g., `index.ts` or `main.ts`.
 declare module 'typroof' {
-  interface Validator<T, U> {
+  interface Validator<T, U, Not> {
     // Define your validator here
-    beFoo: T extends 'foo' ? true : false;
+    beFoo: Not extends false ?
+      T extends 'foo' ?
+        true
+      : `Expect \`${Stringify<T>}\` to be \`'foo'\`, but does not`
+    : T extends 'foo' ? `Expect the type not to be \`'foo'\`, but does`
+    : false;
   }
 }
 
@@ -379,9 +387,7 @@ const foo = (): Plugin => ({
   name: 'typroof-plugin-example',
   analyzers: {
     // Just like what you have seen in `registerAnalyzer`
-    beFoo: (actual, _, passed, { not }) => {
-      if (passed) return;
-
+    beFoo: (actual, _expected, { not }) => {
       const actualText = chalk.bold(actual.text);
       const expectedType = chalk.bold('"foo"');
       const actualType = chalk.bold(actual.type.getText());
@@ -411,7 +417,12 @@ import type { Plugin } from 'typroof/plugin';
 
 declare module 'typroof' {
   interface Validator<T, U> {
-    beFoo: T extends 'foo' ? true : false;
+    beFoo: Not extends false ?
+      T extends 'foo' ?
+        true
+      : `Expect \`${Stringify<T>}\` to be \`'foo'\`, but does not`
+    : T extends 'foo' ? `Expect the type not to be \`'foo'\`, but does`
+    : false;
   }
 }
 

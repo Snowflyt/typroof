@@ -15,9 +15,7 @@ import { match, registerAnalyzer } from '../matcher';
 export const beNull = match<'beNull'>();
 
 export const registerToBeNull = () => {
-  registerAnalyzer('beNull', (actual, _, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('beNull', (actual, _expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType = chalk.bold('null');
     const actualType = chalk.bold(actual.type.getText());

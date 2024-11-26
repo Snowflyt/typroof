@@ -20,9 +20,7 @@ export const equal = <U>(
 ) => match<'equal', U>();
 
 export const registerToEqual = () => {
-  registerAnalyzer('equal', (actual, expected, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('equal', (actual, expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType = chalk.bold(expected.getText());
     const actualType = chalk.bold(actual.type.getText());

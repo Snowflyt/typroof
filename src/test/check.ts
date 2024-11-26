@@ -58,12 +58,12 @@ export const checkAnalyzeResult = ({
       for (const assertion of child.assertions) {
         const {
           actualNode,
+          expectedType,
           matcherName,
           matcherNode,
           not,
           passedOrValidationResult,
           statement,
-          type,
         } = assertion;
 
         const analyzer = analyzers.get(matcherName);
@@ -74,29 +74,40 @@ export const checkAnalyzeResult = ({
             } Cannot find analyzer for '${matcherName}'`,
           );
 
-        const actual = {
-          text:
-            ts.isTypeNode(actualNode.compilerNode) ?
-              actualNode.getText()
-            : `typeof ${actualNode.getText()}`,
-          type: actualNode.getType(),
-          node: actualNode,
-        };
-        const meta = { diagnostics, not, project, sourceFile, statement };
+        if (passedOrValidationResult !== true) {
+          const actual = {
+            text:
+              ts.isTypeNode(actualNode.compilerNode) ?
+                actualNode.getText()
+              : `typeof ${actualNode.getText()}`,
+            type: actualNode.getType(),
+            node: actualNode,
+          };
+          const meta = {
+            ...(typeof passedOrValidationResult !== 'boolean' ?
+              { validationResult: passedOrValidationResult }
+            : {}),
+            diagnostics,
+            not,
+            project,
+            sourceFile,
+            statement,
+          };
 
-        try {
-          analyzer(actual, type, passedOrValidationResult, meta);
-        } catch (error) {
-          if (typeof error === 'string') {
-            const assertionResult: AssertionResultFail = {
-              pass: false,
-              assertion,
-              errorLineNumber: actualNode.getStartLineNumber(),
-              errorColumnNumber: actualNode.getStart() - actualNode.getStartLinePos() + 1,
-              errorMessage: error,
-            };
-            testResult.assertionResults.push(assertionResult);
-            continue;
+          try {
+            analyzer(actual, expectedType, meta);
+          } catch (error) {
+            if (typeof error === 'string') {
+              const assertionResult: AssertionResultFail = {
+                pass: false,
+                assertion,
+                errorLineNumber: actualNode.getStartLineNumber(),
+                errorColumnNumber: actualNode.getStart() - actualNode.getStartLinePos() + 1,
+                errorMessage: error,
+              };
+              testResult.assertionResults.push(assertionResult);
+              continue;
+            }
           }
         }
 

@@ -25,9 +25,7 @@ export const strictExtend = <U>(
 ) => match<'strictExtend', U>();
 
 export const registerToStrictExtend = () => {
-  registerAnalyzer('strictExtend', (actual, expected, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('strictExtend', (actual, expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType = chalk.bold(expected.getText());
     const actualType = chalk.bold(actual.type.getText());

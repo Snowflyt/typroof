@@ -25,9 +25,7 @@ export const strictCover = <U>(
 ) => match<'strictCover', U>();
 
 export const registerToStrictCover = () => {
-  registerAnalyzer('strictCover', (actual, expected, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('strictCover', (actual, expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType = chalk.bold(expected.getText());
     const actualType = chalk.bold(actual.type.getText());

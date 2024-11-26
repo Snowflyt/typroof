@@ -16,9 +16,7 @@ import { match, registerAnalyzer } from '../matcher';
 export const beNullish = match<'beNullish'>();
 
 export const registerToBeNullish = () => {
-  registerAnalyzer('beNullish', (actual, _, passed, { not }) => {
-    if (passed) return;
-
+  registerAnalyzer('beNullish', (actual, _expected, { not }) => {
     const actualText = chalk.bold(actual.text);
     const expectedType =
       chalk.bold('null') + ', ' + chalk.bold('undefined') + ' or ' + chalk.bold('null | undefined');
