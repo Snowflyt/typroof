@@ -10,7 +10,7 @@ import type { IsNever } from './is-never';
  * type R1 = Stringify<string>;
  * //   ^?: 'string'
  * type R2 = Stringify<10 | 'foo' | true>;
- * //   ^?: '10 | "foo" | true'
+ * //   ^?: "10 | 'foo' | true"
  * type R3 = Stringify<{
  * //   ^?: '{ a: (number, boolean?, ...string[]) => void; b?: string | number; readonly c?: [55 | "bar", ...bigint[]] }'
  *   a: (a: number, b?: boolean, ...args: string[]) => void;
@@ -124,7 +124,7 @@ type StringifyFunction<
  * type R3 = StringifyArray<[a: string, b?: number, ...boolean[]]>;
  * //   ^?: '[string, number?, ...boolean[]]'
  * type R4 = StringifyArray<readonly [boolean | 10n, ...string[], 'foo' | 42, number]>;
- * //   ^?: 'readonly [boolean | 10n, ...string[], "foo" | 42, number]'
+ * //   ^?: "readonly [boolean | 10n, ...string[], 'foo' | 42, number]"
  * ```
  */
 type StringifyArray<TS extends readonly unknown[], Options extends StringifyOptions> =
