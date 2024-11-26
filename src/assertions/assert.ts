@@ -160,20 +160,25 @@ export interface Validator<T = unknown, U = unknown, Not extends boolean = boole
 
 export interface Expect<T> {
   to: <Tag extends keyof Validator<unknown, unknown, false>, U>(
-    match: Validator<T, U, false>[Tag] extends true | ToAnalyze<unknown> ?
+    match: [Validator<T, U, false>[Tag]] extends [never] ?
+      `Validation failed: ${Tag}<${Stringify<T>}, ${Stringify<U>}>`
+    : Validator<T, U, false>[Tag] extends true | ToAnalyze<unknown> ?
       (() => Match<Tag, U>) | Match<Tag, U>
     : Validator<T, U, false>[Tag] extends string ? Validator<T, U, false>[Tag]
     : `Validation failed: ${Tag}<${Stringify<T>}, ${Stringify<U>}>`,
-  ) => Validator<T, U, false>[Tag] extends true ? 'pass'
+  ) => [Validator<T, U, false>[Tag]] extends [never] ? 'fail'
+  : Validator<T, U, false>[Tag] extends true ? 'pass'
   : Validator<T, U, false>[Tag] extends ToAnalyze<unknown> ? Validator<T, U, false>[Tag]
   : 'fail';
   not: {
     to: <Tag extends keyof Validator<unknown, unknown, true>, U>(
-      match: Validator<T, U, true>[Tag] extends false | ToAnalyze<unknown> ?
+      match: [Validator<T, U, true>[Tag]] extends [never] ? 'fail'
+      : Validator<T, U, true>[Tag] extends false | ToAnalyze<unknown> ?
         (() => Match<Tag, U>) | Match<Tag, U>
       : Validator<T, U, true>[Tag] extends string ? Validator<T, U, true>[Tag]
       : `Validation failed: not ${Tag}<${Stringify<T>}, ${Stringify<U>}>`,
-    ) => Validator<T, U, true>[Tag] extends false ? 'pass'
+    ) => [Validator<T, U, true>[Tag]] extends [never] ? 'fail'
+    : Validator<T, U, true>[Tag] extends false ? 'pass'
     : Validator<T, U, true>[Tag] extends ToAnalyze<unknown> ? Validator<T, U, false>[Tag]
     : 'fail';
   };
