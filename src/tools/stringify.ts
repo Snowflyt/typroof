@@ -109,7 +109,8 @@ type IntersectOf<U> =
 type StringifyFunction<
   F extends (...args: never[]) => unknown,
   Options extends StringifyOptions,
-> = `(${_StringifyTuple<Parameters<F>, Options>}) => ${_Stringify<ReturnType<F>, Options>}`;
+> = `(${[Parameters<F>] extends [never] ? '...never'
+: _StringifyTuple<Parameters<F>, Options>}) => ${_Stringify<ReturnType<F>, Options>}`;
 
 /**
  * Stringify an array type.
