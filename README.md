@@ -2,7 +2,7 @@
 
 > 🚀 **Revolutionize** your TS **type testing** with a fast, smooth, and flexible **WYSIWYG** experience!
 
-![Screenshot](./screenshot.gif)
+https://github.com/user-attachments/assets/53aa8f97-c580-428e-89b2-2d07d1c5680d
 
 ## Installation
 
@@ -79,7 +79,7 @@ You may notice that we use two different syntaxes for the `equal` matcher. You c
 
 Then run `typroof` to test your type definitions:
 
-![Screenshot](./screenshot.png)
+![Screenshot](docs/screenshot.png)
 
 The `equal` matcher strictly checks if the type is equal to the expected type. If you want to check if the type is assignable to the expected type, you can use the `extend` matcher:
 
