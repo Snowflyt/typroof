@@ -44,14 +44,14 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
   const getPrettifiedPathName = (file: SourceFile) => {
     const filePathName = path.relative(process.cwd(), file.getFilePath()).replace(/\\/g, '/');
     const filePath = path.dirname(filePathName);
-    const fileNameWithExt = path.basename(filePathName);
-    let ext = path.extname(filePathName);
-    let fileName = fileNameWithExt.slice(0, -ext.length);
-    if (path.extname(fileName) === '.proof') {
-      ext = path.extname(fileName) + ext;
-      fileName = fileNameWithExt.slice(0, -ext.length);
+    let fileName = path.basename(filePathName);
+    let exts = '';
+    let ext = '';
+    while ((ext = path.extname(fileName))) {
+      exts = ext + exts;
+      fileName = fileName.slice(0, -ext.length);
     }
-    return (filePath !== '.' ? chalk.dim(filePath + '/') : '') + fileName + chalk.dim(ext);
+    return (filePath !== '.' ? chalk.dim(filePath + '/') : '') + fileName + chalk.dim(exts);
   };
 
   const result: Group = { description: getPrettifiedPathName(file), children: [] };
