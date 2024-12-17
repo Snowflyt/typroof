@@ -1,5 +1,4 @@
-import chalk from 'chalk';
-
+import { bold } from '../../utils/colors';
 import { match, registerAnalyzer } from '../matcher';
 
 /**
@@ -20,9 +19,9 @@ export const beTrue = match<'beTrue'>();
 
 export const registerToBeTrue = () => {
   registerAnalyzer('beTrue', (actual, _expected, { not }) => {
-    const actualText = chalk.bold(actual.text);
-    const expectedType = chalk.bold('true');
-    const actualType = chalk.bold(actual.type.getText());
+    const actualText = bold(actual.text);
+    const expectedType = bold('true');
+    const actualType = bold(actual.type.getText());
 
     throw `Expect ${actualText} ${not ? 'not ' : ''}to be ${expectedType}, but got ${actualType}.`;
   });

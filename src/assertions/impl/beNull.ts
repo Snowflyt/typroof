@@ -1,5 +1,4 @@
-import chalk from 'chalk';
-
+import { bold } from '../../utils/colors';
 import { match, registerAnalyzer } from '../matcher';
 
 /**
@@ -16,9 +15,9 @@ export const beNull = match<'beNull'>();
 
 export const registerToBeNull = () => {
   registerAnalyzer('beNull', (actual, _expected, { not }) => {
-    const actualText = chalk.bold(actual.text);
-    const expectedType = chalk.bold('null');
-    const actualType = chalk.bold(actual.type.getText());
+    const actualText = bold(actual.text);
+    const expectedType = bold('null');
+    const actualType = bold(actual.type.getText());
 
     throw `Expect ${actualText} ${not ? 'not ' : ''}to be ${expectedType}, but got ${actualType}.`;
   });

@@ -1,5 +1,4 @@
-import chalk from 'chalk';
-
+import { bold } from '../../utils/colors';
 import { match, registerAnalyzer } from '../matcher';
 
 import type { extend } from './extend';
@@ -26,9 +25,9 @@ export const strictExtend = <U>(
 
 export const registerToStrictExtend = () => {
   registerAnalyzer('strictExtend', (actual, expected, { not }) => {
-    const actualText = chalk.bold(actual.text);
-    const expectedType = chalk.bold(expected.getText());
-    const actualType = chalk.bold(actual.type.getText());
+    const actualText = bold(actual.text);
+    const expectedType = bold(expected.getText());
+    const actualType = bold(actual.type.getText());
 
     throw (
       `Expect ${actualText} (${actualType}) ${not ? 'not ' : ''}to ` +

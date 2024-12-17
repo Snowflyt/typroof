@@ -1,9 +1,9 @@
 import path from 'node:path';
 
-import chalk from 'chalk';
 import { ts } from 'ts-morph';
 
 import { AnalyzingError } from '../errors';
+import { dim } from '../utils/colors';
 
 import { isCallOfSymbol, isCallOfSymbols } from './ts';
 
@@ -51,7 +51,7 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
       exts = ext + exts;
       fileName = fileName.slice(0, -ext.length);
     }
-    return (filePath !== '.' ? chalk.dim(filePath + '/') : '') + fileName + chalk.dim(exts);
+    return (filePath !== '.' ? dim(filePath + '/') : '') + fileName + dim(exts);
   };
 
   const result: Group = { description: getPrettifiedPathName(file), children: [] };

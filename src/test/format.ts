@@ -1,22 +1,20 @@
-import chalk from 'chalk';
+import { bold, dim, gray, green, red, yellow } from '../utils/colors';
 
 import type { GroupResult, TestResult } from './check';
 
 const formatTestResult = (test: TestResult, indent: number): string => {
   let result = '';
 
-  const icon = test.assertionResults.some((a) => !a.pass) ? chalk.red('✘') : chalk.green('✔');
+  const icon = test.assertionResults.some((a) => !a.pass) ? red('✘') : green('✔');
   result += ' '.repeat(indent) + `${icon} ${test.description}\n`;
 
   for (const assertion of test.assertionResults) {
     if (assertion.pass) continue;
     result +=
       ' '.repeat(indent + 2) +
-      chalk.red('×') +
+      red('×') +
       ' ' +
-      chalk.gray(assertion.errorLineNumber) +
-      chalk.hex('#696969')(':') +
-      chalk.gray(assertion.errorColumnNumber) +
+      gray(assertion.errorLineNumber + ':' + assertion.errorColumnNumber) +
       ' ' +
       assertion.errorMessage +
       '\n';
@@ -61,9 +59,9 @@ const groupFailCount = (group: GroupResult): number => {
 export const formatGroupResult = (group: GroupResult, indent = 0): string => {
   let result = '';
 
-  const icon = groupHasFails(group) ? chalk.hex('#808000')('❯') : chalk.green('✔');
+  const icon = groupHasFails(group) ? yellow('❯') : green('✔');
   const tests = groupTestCount(group);
-  result += ' '.repeat(indent) + `${icon} ${group.description} ${chalk.dim('(' + tests + ')')}\n`;
+  result += ' '.repeat(indent) + `${icon} ${group.description} ${dim('(' + tests + ')')}\n`;
 
   for (const child of group.children)
     if (isTestResult(child)) result += formatTestResult(child, indent + 2) + '\n';
@@ -108,25 +106,24 @@ export const formatSummary = (options: {
   const { testCount, testFailed, testFileFailed } = summary(groups);
 
   result +=
-    chalk.dim(' Test Files  ') +
+    dim(' Test Files  ') +
     (testFileFailed > 0 ?
-      chalk.bold.red(testFileFailed + ' failed') + (groups.length - testFileFailed > 0 ? ' | ' : '')
+      bold(red(testFileFailed + ' failed')) + (groups.length - testFileFailed > 0 ? ' | ' : '')
     : '') +
     (groups.length - testFileFailed > 0 ?
-      chalk.bold.green(groups.length - testFileFailed + ' passed')
+      bold(green(groups.length - testFileFailed + ' passed'))
     : '') +
     ' ' +
-    chalk.gray(`(${groups.length})`) +
+    gray(`(${groups.length})`) +
     '\n';
   result +=
-    chalk.dim('      Tests  ') +
+    dim('      Tests  ') +
     (testFailed > 0 ?
-      chalk.bold.red(testFailed + ' failed') +
-      (testCount - testFailed > 0 ? ' ' + chalk.gray('|') + ' ' : '')
+      bold(red(testFailed + ' failed')) + (testCount - testFailed > 0 ? ' ' + gray('|') + ' ' : '')
     : '') +
-    (testCount - testFailed > 0 ? chalk.bold.green(testCount - testFailed + ' passed') : '') +
+    (testCount - testFailed > 0 ? bold(green(testCount - testFailed + ' passed')) : '') +
     ' ' +
-    chalk.gray(`(${testCount})`) +
+    gray(`(${testCount})`) +
     '\n';
   if (startedAt) {
     const startAtRepresentation =
@@ -135,13 +132,11 @@ export const formatSummary = (options: {
       String(startedAt.getMinutes()).padStart(2, '0') +
       ':' +
       String(startedAt.getSeconds()).padStart(2, '0');
-    result += chalk.dim('   Start at  ') + startAtRepresentation + '\n';
+    result += dim('   Start at  ') + startAtRepresentation + '\n';
   }
   if (startedAt && finishedAt)
     result +=
-      chalk.dim('   Duration  ') +
-      String(Math.round(finishedAt.getTime() - startedAt.getTime())) +
-      'ms';
+      dim('   Duration  ') + String(Math.round(finishedAt.getTime() - startedAt.getTime())) + 'ms';
 
   return result;
 };

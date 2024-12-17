@@ -1,5 +1,4 @@
-import chalk from 'chalk';
-
+import { bold } from '../../utils/colors';
 import { match, registerAnalyzer } from '../matcher';
 
 /**
@@ -42,7 +41,7 @@ export const registerToError = () => {
       );
 
     if (not ? triggeredError : !triggeredError) {
-      const actualText = chalk.bold(actual.text);
+      const actualText = bold(actual.text);
       throw (
         `Expect ${actualText} ${not ? 'not ' : ''}to trigger error, ` +
         `but ${not ? 'did' : 'did not'}.`
