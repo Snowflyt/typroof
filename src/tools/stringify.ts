@@ -82,11 +82,13 @@ type _Stringify<T, Visited extends unknown[], Options extends StringifyOptions> 
         : T extends object ? StringifyObject<T, [...Visited, T], Options>
         : '...'
       : never,
+      ' | ',
       Options
     >;
 
 type JoinStringUnion<
   S extends string,
+  Sep extends string,
   Options extends StringifyOptions,
   Result extends string = '',
 > =
@@ -95,7 +97,7 @@ type JoinStringUnion<
       Options['wrapParenthesesIfUnion'] extends false ? `${S}${Result}`
       : Result extends '' ? S
       : `(${S}${Result})`
-    : JoinStringUnion<Exclude<S, LastOf<S>>, Options, ` | ${LastOf<S>}${Result}`>
+    : JoinStringUnion<Exclude<S, LastOf<S>>, Sep, Options, `${Sep}${LastOf<S>}${Result}`>
   ) extends infer R extends string ?
     R
   : never;
@@ -122,7 +124,49 @@ type StringifyFunction<
   F extends (...args: never[]) => unknown,
   Visited extends unknown[],
   Options extends StringifyOptions,
-> = `(${[Parameters<F>] extends [never] ? '...never' : _StringifyTuple<Parameters<F>, Visited, Options>}) => ${_Stringify<ReturnType<F>, Visited, Options>}`;
+> =
+  [Exclude<Overload<F>, LastOf<Overload<F>>>] extends [never] ?
+    `(${[Parameters<F>] extends [never] ? '...never' : _StringifyTuple<Parameters<F>, Visited, Options>}) => ${_Stringify<ReturnType<F>, Visited, Options>}`
+  : Overload<F> extends infer F extends (...args: never) => unknown ?
+    JoinStringUnion<
+      F extends F ?
+        `((${[Parameters<F>] extends [never] ? '...never' : _StringifyTuple<Parameters<F>, Visited, Options>}) => ${_Stringify<ReturnType<F>, Visited, Options>})`
+      : never,
+      ' & ',
+      Options
+    >
+  : never;
+/**
+ * Get all overloads of a function type as a union.
+ *
+ * Copied from [expect-type source code](https://github.com/mmkal/expect-type/blob/213a745ba82db8a52bf6216f6b1c90475a7f73cb/src/overloads.ts#L14-L17).
+ */
+type Overload<F> =
+  F extends (
+    {
+      (...args: infer A1): infer R1;
+      (...args: infer A2): infer R2;
+      (...args: infer A3): infer R3;
+      (...args: infer A4): infer R4;
+      (...args: infer A5): infer R5;
+      (...args: infer A6): infer R6;
+      (...args: infer A7): infer R7;
+      (...args: infer A8): infer R8;
+      (...args: infer A9): infer R9;
+      (...args: infer A10): infer R10;
+    }
+  ) ?
+    | ((...p: A1) => R1)
+    | ((...p: A2) => R2)
+    | ((...p: A3) => R3)
+    | ((...p: A4) => R4)
+    | ((...p: A5) => R5)
+    | ((...p: A6) => R6)
+    | ((...p: A7) => R7)
+    | ((...p: A8) => R8)
+    | ((...p: A9) => R9)
+    | ((...p: A10) => R10)
+  : never;
 
 /**
  * Stringify an array type.
