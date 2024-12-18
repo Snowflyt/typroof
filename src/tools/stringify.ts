@@ -24,6 +24,7 @@ export type Stringify<
   Options extends Partial<StringifyOptions> = { quote: 'single'; wrapParenthesesIfUnion: false },
 > = _Stringify<
   T,
+  [],
   {
     [K in keyof StringifyOptions]: K extends keyof Options ? NonNullable<Options[K]>
     : StringifyOptionsDefault[K];
@@ -38,15 +39,23 @@ type Merge<T, U> = {
   : never;
 };
 
-export type _Stringify<T, Options extends StringifyOptions> =
+type _IsVisited<T, Visited extends unknown[]> =
+  Visited extends [infer Head, ...infer Tail] ?
+    Equals<T, Head> extends true ?
+      true
+    : _IsVisited<T, Tail>
+  : false;
+
+type _Stringify<T, Visited extends unknown[], Options extends StringifyOptions> =
   IsAny<T> extends true ? 'any'
   : IsNever<T> extends true ? 'never'
   : Equals<T, unknown> extends true ? 'unknown'
   : Equals<T, boolean> extends true ? 'boolean'
   : boolean extends T ?
     Options['wrapParenthesesIfUnion'] extends true ?
-      `(boolean | ${_Stringify<Exclude<T, boolean>, Options>})`
-    : `boolean | ${_Stringify<Exclude<T, boolean>, Options>}`
+      `(boolean | ${_Stringify<Exclude<T, boolean>, [...Visited, T], Options>})`
+    : `boolean | ${_Stringify<Exclude<T, boolean>, [...Visited, T], Options>}`
+  : _IsVisited<T, Visited> extends true ? '...'
   : JoinStringUnion<
       T extends T ?
         Equals<T, string> extends true ? 'string'
@@ -65,9 +74,12 @@ export type _Stringify<T, Options extends StringifyOptions> =
         : Equals<T, void> extends true ? 'void'
         : T extends null ? 'null'
         : T extends undefined ? 'undefined'
-        : T extends (...args: never[]) => unknown ? StringifyFunction<T, Options>
-        : T extends readonly unknown[] ? StringifyArray<T, Options>
-        : T extends object ? StringifyObject<T, Options>
+        : Equals<T, typeof globalThis> extends true ? 'typeof globalThis'
+        : T extends Date ? 'Date'
+        : T extends RegExp ? 'RegExp'
+        : T extends (...args: never[]) => unknown ? StringifyFunction<T, Visited, Options>
+        : T extends readonly unknown[] ? StringifyArray<T, [...Visited, T], Options>
+        : T extends object ? StringifyObject<T, [...Visited, T], Options>
         : '...'
       : never,
       Options
@@ -108,9 +120,9 @@ type IntersectOf<U> =
  */
 type StringifyFunction<
   F extends (...args: never[]) => unknown,
+  Visited extends unknown[],
   Options extends StringifyOptions,
-> = `(${[Parameters<F>] extends [never] ? '...never'
-: _StringifyTuple<Parameters<F>, Options>}) => ${_Stringify<ReturnType<F>, Options>}`;
+> = `(${[Parameters<F>] extends [never] ? '...never' : _StringifyTuple<Parameters<F>, Visited, Options>}) => ${_Stringify<ReturnType<F>, Visited, Options>}`;
 
 /**
  * Stringify an array type.
@@ -127,81 +139,94 @@ type StringifyFunction<
  * //   ^?: "readonly [boolean | 10n, ...string[], 'foo' | 42, number]"
  * ```
  */
-type StringifyArray<TS extends readonly unknown[], Options extends StringifyOptions> =
-  IsTuple<TS> extends true ? StringifyTuple<TS, Options> : _StringifyArray<TS, Options>;
-type _StringifyArray<TS extends readonly unknown[], Options extends StringifyOptions> =
+type StringifyArray<
+  TS extends readonly unknown[],
+  Visited extends unknown[],
+  Options extends StringifyOptions,
+> =
+  IsTuple<TS> extends true ? StringifyTuple<TS, Visited, Options>
+  : _StringifyArray<TS, Visited, Options>;
+type _StringifyArray<
+  TS extends readonly unknown[],
+  Visited extends unknown[],
+  Options extends StringifyOptions,
+> =
   TS extends unknown[] ?
-    `${_Stringify<TS[number], Merge<Options, { wrapParenthesesIfUnion: true }>>}[]`
-  : `readonly ${_Stringify<TS[number], Merge<Options, { wrapParenthesesIfUnion: true }>>}[]`;
+    `${_Stringify<TS[number], Visited, Merge<Options, { wrapParenthesesIfUnion: true }>>}[]`
+  : `readonly ${_Stringify<
+      TS[number],
+      Visited,
+      Merge<Options, { wrapParenthesesIfUnion: true }>
+    >}[]`;
 type IsTuple<TS extends readonly unknown[]> =
-  IsFixedLengthTuple<TS> extends true ?
-    // Must be a tuple if `length` is not `number`
-    true
-  : TS extends readonly [...unknown[], unknown] | readonly [unknown, ...unknown[]] ?
-    // Must be a tuple If have at least 1 required element
-    true
-  : // If have no required element, it may have only optional elements, and if so, it must have an
-  // optional element at `0`, since optional elements cannot follow rest elements
-  // Check if the type of `TS[0]` is different from `TS[number]`
-  Equals<TS[0], TS[number]> extends false ? true
-  : // All possible cases are covered, so it is not a tuple
-    // Notably, cases like `[string?, ...string[]]` are also considered as non-tuple, since it is
-    // not possible to distinguish it from `string[]`
-    false;
+  IsFixedLengthTuple<TS> extends true ? true
+  : TS extends readonly [...unknown[], unknown] | readonly [unknown, ...unknown[]] ? true
+  : Equals<TS[0], TS[number]> extends false ? true
+  : false;
 type IsFixedLengthTuple<TS extends readonly unknown[]> = number extends TS['length'] ? false : true;
-type StringifyTuple<TS extends readonly unknown[], Options extends StringifyOptions> =
-  TS extends unknown[] ? `[${_StringifyTuple<TS, Options>}]`
-  : `readonly [${_StringifyTuple<TS, Options>}]`;
-type _StringifyTuple<TS extends readonly unknown[], Options extends StringifyOptions> =
+type StringifyTuple<
+  TS extends readonly unknown[],
+  Visited extends unknown[],
+  Options extends StringifyOptions,
+> =
+  TS extends unknown[] ? `[${_StringifyTuple<TS, Visited, Options>}]`
+  : `readonly [${_StringifyTuple<TS, Visited, Options>}]`;
+type _StringifyTuple<
+  TS extends readonly unknown[],
+  Visited extends unknown[],
+  Options extends StringifyOptions,
+> =
   (
-    IsTuple<TS> extends false ? `...${_StringifyArray<TS, Options>}`
-    : IsFixedLengthTuple<TS> extends true ?
-      // Have no rest elements (but may have optional elements)
-      _StringifyFixedLengthTuple<TS, Options>
-    : // Have rest elements
-    TS extends readonly [infer Head, ...infer Middle, infer Last] ?
-      // If rest elements is in middle, `Head` and `Last` must be required elements
-      // Proof:
-      // 1. If `Last` is optional, since optional elements cannot follow rest elements, so `Last`
-      //    must be required
-      // 2. If `Head` is optional, since required elements cannot follow optional elements, `Last`
-      //    must be optional, but we already know that `Last` is required, contradiction
-      `${_Stringify<Head, Options>}, ${_StringifyTuple<Middle, Options>}, ${_Stringify<Last, Options>}`
+    IsTuple<TS> extends false ? `...${_StringifyArray<TS, Visited, Options>}`
+    : IsFixedLengthTuple<TS> extends true ? _StringifyFixedLengthTuple<TS, Visited, Options>
+    : TS extends readonly [infer Head, ...infer Middle, infer Last] ?
+      `${_Stringify<Head, Visited, Options>}, ${_StringifyTuple<Middle, Visited, Options>}, ${_Stringify<Last, Visited, Options>}`
     : TS extends readonly [...infer Init, infer Last] ?
-      // If rest elements is at the beginning, `Last` must be required, which is obvious
-      `${_StringifyTuple<Init, Options>}, ${_Stringify<Last, Options>}`
-    : // If rest elements is at the end, `Head` can be optional, so we have 2 cases to consider
-    // 1. `Head` is required
-    TS extends readonly [infer Head, ...infer Tail] ?
-      `${_Stringify<Head, Options>}, ${_StringifyTuple<Tail, Options>}`
-    : // 2. `Head` is optional
-    TS extends readonly [(infer Head)?, ...infer Tail] ?
-      `${_Stringify<Head, Options>}?, ${_StringifyTuple<Tail, Merge<Options, { wrapParenthesesIfUnion: true }>>}`
+      `${_StringifyTuple<Init, Visited, Options>}, ${_Stringify<Last, Visited, Options>}`
+    : TS extends readonly [infer Head, ...infer Tail] ?
+      `${_Stringify<Head, Visited, Options>}, ${_StringifyTuple<Tail, Visited, Options>}`
+    : TS extends readonly [(infer Head)?, ...infer Tail] ?
+      `${_Stringify<Head, Visited, Options>}?, ${_StringifyTuple<
+        Tail,
+        Visited,
+        Merge<Options, { wrapParenthesesIfUnion: true }>
+      >}`
     : never
   ) extends infer R extends string ?
     R
   : never;
 type _StringifyFixedLengthTuple<
   TS extends readonly unknown[],
+  Visited extends unknown[],
   Options extends StringifyOptions,
   Result extends string = '',
 > =
   TS extends readonly [] ? Result
   : TS extends readonly [infer Head] ?
-    `${Result}${Result extends '' ? '' : ', '}${_Stringify<Head, Options>}`
+    `${Result}${Result extends '' ? '' : ', '}${_Stringify<Head, Visited, Options>}`
   : TS extends readonly [(infer Head)?] ?
-    `${Result}${Result extends '' ? '' : ', '}${_Stringify<Head, Merge<Options, { wrapParenthesesIfUnion: true }>>}?`
+    `${Result}${Result extends '' ? '' : ', '}${_Stringify<
+      Head,
+      Visited,
+      Merge<Options, { wrapParenthesesIfUnion: true }>
+    >}?`
   : TS extends readonly [infer Head, ...infer Tail] ?
     _StringifyFixedLengthTuple<
       Tail,
+      Visited,
       Options,
-      `${Result}${Result extends '' ? '' : ', '}${_Stringify<Head, Options>}`
+      `${Result}${Result extends '' ? '' : ', '}${_Stringify<Head, Visited, Options>}`
     >
   : TS extends readonly [(infer Head)?, ...infer Tail] ?
     _StringifyFixedLengthTuple<
       Tail,
+      Visited,
       Options,
-      `${Result}${Result extends '' ? '' : ', '}${_Stringify<Head, Merge<Options, { wrapParenthesesIfUnion: true }>>}?`
+      `${Result}${Result extends '' ? '' : ', '}${_Stringify<
+        Head,
+        Visited,
+        Merge<Options, { wrapParenthesesIfUnion: true }>
+      >}?`
     >
   : never;
 
@@ -216,28 +241,32 @@ type _StringifyFixedLengthTuple<
  */
 type StringifyObject<
   T extends object,
+  Visited extends unknown[],
   Options extends StringifyOptions,
-> = `{ ${_StringifyObject<T, Options>} }`;
+> = `{ ${_StringifyObject<T, Visited, Options>} }`;
 type _StringifyObject<
   T extends object,
+  Visited extends unknown[],
   Options extends StringifyOptions,
   Result extends string = '',
 > =
   keyof T extends LastOf<keyof T> ?
-    `${StringifyPair<T, keyof T, Options>}${Result extends '' ? '' : '; '}${Result}`
+    `${StringifyPair<T, keyof T, Visited, Options>}${Result extends '' ? '' : '; '}${Result}`
   : _StringifyObject<
       Omit<T, LastOf<keyof T>>,
+      Visited,
       Options,
-      `${StringifyPair<T, LastOf<keyof T>, Options>}${Result extends '' ? '' : '; '}${Result}`
+      `${StringifyPair<T, LastOf<keyof T>, Visited, Options>}${Result extends '' ? '' : '; '}${Result}`
     >;
 type StringifyPair<
   T extends object,
   K extends keyof T,
+  Visited extends unknown[],
   Options extends StringifyOptions,
-> = `${StringifyKey<K, { optional: IsOptional<T, K>; readonly: IsReadonly<T, K> }>}: ${_Stringify<
-  IsOptional<T, K> extends true ? Exclude<T[K], undefined> : T[K],
-  Options
->}`;
+> = `${StringifyKey<
+  K,
+  { optional: IsOptional<T, K>; readonly: IsReadonly<T, K> }
+>}: ${_Stringify<IsOptional<T, K> extends true ? Exclude<T[K], undefined> : T[K], Visited, Options>}`;
 type IsOptional<T, K extends keyof T> = { [P in K]?: T[K] } extends Pick<T, K> ? true : false;
 type IsReadonly<T, K extends keyof T> =
   Equals<Pick<T, K>, { readonly [P in K]: T[K] }> extends true ? true : false;
