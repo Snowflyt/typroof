@@ -77,7 +77,7 @@ type _Stringify<T, Visited extends unknown[], Options extends StringifyOptions> 
         : Equals<T, typeof globalThis> extends true ? 'typeof globalThis'
         : T extends Date ? 'Date'
         : T extends RegExp ? 'RegExp'
-        : T extends (...args: never[]) => unknown ? StringifyFunction<T, Visited, Options>
+        : T extends (...args: never[]) => unknown ? StringifyFunction<T, [...Visited, T], Options>
         : T extends readonly unknown[] ? StringifyArray<T, [...Visited, T], Options>
         : T extends object ? StringifyObject<T, [...Visited, T], Options>
         : '...'
