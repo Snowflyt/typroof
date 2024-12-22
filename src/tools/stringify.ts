@@ -51,6 +51,7 @@ type _Stringify<T, Visited extends unknown[], Options extends StringifyOptions> 
   : IsNever<T> extends true ? 'never'
   : Equals<T, unknown> extends true ? 'unknown'
   : Equals<T, boolean> extends true ? 'boolean'
+  : Equals<T, {}> extends true ? '{}'
   : boolean extends T ?
     Options['wrapParenthesesIfUnion'] extends true ?
       `(boolean | ${_Stringify<Exclude<T, boolean>, [...Visited, T], Options>})`
