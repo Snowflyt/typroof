@@ -43,7 +43,7 @@
     "test:watch-cov": "vitest --coverage"
   },
   "dependencies": {
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.24.2",
     "get-tsconfig": "^4.8.1",
     "meow": "^13.2.0",
     "ts-morph": "^24.0.0"
