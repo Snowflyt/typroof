@@ -1,6 +1,6 @@
 {
   "name": "typroof",
-  "version": "0.3.6~dev",
+  "version": "0.3.6",
   "private": true,
   "description": "🚀 Revolutionize your TS type testing with a fast, smooth, and flexible WYSIWYG experience!",
   "keywords": [
@@ -36,11 +36,11 @@
     "lint:fix": "eslint --fix {src,test}/**/*.{js,ts} *.{js,cjs,mjs,ts,cts,mts} --no-error-on-unmatched-pattern --report-unused-disable-directives-severity error --max-warnings 0",
     "prepare": "husky",
     "test": "vitest run",
-    "test-types": "tsx src/cli.ts",
     "test:cov": "vitest run --coverage",
     "test:ui": "vitest --ui --coverage.enabled=true",
     "test:watch": "vitest",
-    "test:watch-cov": "vitest --coverage"
+    "test:watch-cov": "vitest --coverage",
+    "test-types": "tsx src/cli.ts"
   },
   "dependencies": {
     "esbuild": "^0.24.2",
