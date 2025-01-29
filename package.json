@@ -1,6 +1,6 @@
 {
   "name": "typroof",
-  "version": "0.3.6",
+  "version": "0.3.7~dev",
   "private": true,
   "description": "🚀 Revolutionize your TS type testing with a fast, smooth, and flexible WYSIWYG experience!",
   "keywords": [
