@@ -1,4 +1,9 @@
-export type { Stringify, StringifyOptions, StringifyOptionsDefault } from './stringify';
+export type {
+  Stringify,
+  StringifyOptions,
+  StringifyOptionsDefault,
+  StringifySerializer,
+} from './stringify';
 
 export type * from './boolean';
 export type * from './covers';

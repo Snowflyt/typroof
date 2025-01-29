@@ -1,6 +1,159 @@
+/* eslint-disable @typescript-eslint/no-wrapper-object-types */
+
 import type { Equals } from './equals';
 import type { IsAny } from './is-any';
 import type { IsNever } from './is-never';
+
+/**
+ * Custom serializers for {@linkcode Stringify}.
+ *
+ * Register your own serializers here using [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation).
+ */
+// We already registered the built-in serializers for some global objects here.
+// Reference: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
+export interface StringifySerializer<T> {
+  /* Value properties */
+  globalThis: Equals<T, typeof globalThis> extends true ? 'typeof globalThis' : never;
+
+  /* Error objects */
+  // Sadly, the type of some error objects are entirely the same in TypeScript,
+  // so `Stringify<TypeError>` will return `'Error'` instead of `'TypeError'`.
+  Error: Equals<T, Error> extends true ? 'Error' : never;
+  ErrorConstructor: Equals<T, ErrorConstructor> extends true ? 'ErrorConstructor' : never;
+
+  /* Numbers and dates */
+  Math: Equals<T, Math> extends true ? 'Math' : never;
+  Date: T extends Date ? 'Date' : never;
+  DateConstructor: Equals<T, DateConstructor> extends true ? 'DateConstructor' : never;
+
+  /* Text processing */
+  RegExp: T extends RegExp ? 'RegExp' : never;
+  RegExpConstructor: Equals<T, RegExpConstructor> extends true ? 'RegExpConstructor' : never;
+
+  /* Indexed collections */
+  ArrayConstructor: Equals<T, ArrayConstructor> extends true ? 'ArrayConstructor' : never;
+  Int8Array: T extends Int8Array<ArrayBufferLike> ? 'Int8Array'
+  : T extends Int8Array<infer B> ? `Int8Array<${Stringify<B>}`
+  : never;
+  Int8ArrayConstructor: Equals<T, Int8ArrayConstructor> extends true ? 'Int8ArrayConstructor'
+  : never;
+  Uint8Array: T extends Uint8Array<ArrayBufferLike> ? 'Uint8Array'
+  : T extends Uint8Array<infer B> ? `Uint8Array<${Stringify<B>}`
+  : never;
+  Uint8ArrayConstructor: Equals<T, Uint8ArrayConstructor> extends true ? 'Uint8ArrayConstructor'
+  : never;
+  Uint8ClampedArray: T extends Uint8ClampedArray<ArrayBufferLike> ? 'Uint8ClampedArray'
+  : T extends Uint8ClampedArray<infer B> ? `Uint8ClampedArray<${Stringify<B>}`
+  : never;
+  Uint8ClampedArrayConstructor: Equals<T, Uint8ClampedArrayConstructor> extends true ?
+    'Uint8ClampedArrayConstructor'
+  : never;
+  Int16Array: T extends Int16Array<ArrayBufferLike> ? 'Int16Array'
+  : T extends Int16Array<infer B> ? `Int16Array<${Stringify<B>}`
+  : never;
+  Int16ArrayConstructor: Equals<T, Int16ArrayConstructor> extends true ? 'Int16ArrayConstructor'
+  : never;
+  Uint16Array: T extends Uint16Array<ArrayBufferLike> ? 'Uint16Array'
+  : T extends Uint16Array<infer B> ? `Uint16Array<${Stringify<B>}`
+  : never;
+  Uint16ArrayConstructor: Equals<T, Uint16ArrayConstructor> extends true ? 'Uint16ArrayConstructor'
+  : never;
+  Int32Array: T extends Int32Array<ArrayBufferLike> ? 'Int32Array'
+  : T extends Int32Array<infer B> ? `Int32Array<${Stringify<B>}`
+  : never;
+  Int32ArrayConstructor: Equals<T, Int32ArrayConstructor> extends true ? 'Int32ArrayConstructor'
+  : never;
+  Uint32Array: T extends Uint32Array<ArrayBufferLike> ? 'Uint32Array'
+  : T extends Uint32Array<infer B> ? `Uint32Array<${Stringify<B>}`
+  : never;
+  Uint32ArrayConstructor: Equals<T, Uint32ArrayConstructor> extends true ? 'Uint32ArrayConstructor'
+  : never;
+  Float32Array: T extends Float32Array<ArrayBufferLike> ? 'Float32Array'
+  : T extends Float32Array<infer B> ? `Float32Array<${Stringify<B>}`
+  : never;
+  Float32ArrayConstructor: Equals<T, Float32ArrayConstructor> extends true ?
+    'Float32ArrayConstructor'
+  : never;
+  Float64Array: T extends Float64Array<ArrayBufferLike> ? 'Float64Array'
+  : T extends Float64Array<infer B> ? `Float64Array<${Stringify<B>}`
+  : never;
+  Float64ArrayConstructor: Equals<T, Float64ArrayConstructor> extends true ?
+    'Float64ArrayConstructor'
+  : never;
+
+  /* Keyed collections */
+  Map: T extends Map<infer K, infer V> ? `Map<${Stringify<K>}, ${Stringify<V>}` : never;
+  MapConstructor: Equals<T, MapConstructor> extends true ? 'MapConstructor' : never;
+  Set: T extends Set<infer V> ? `Set<${Stringify<V>}` : never;
+  SetConstructor: Equals<T, SetConstructor> extends true ? 'SetConstructor' : never;
+  WeakMap: T extends WeakMap<infer K, infer V> ? `WeakMap<${Stringify<K>}, ${Stringify<V>}` : never;
+  WeakMapConstructor: Equals<T, WeakMapConstructor> extends true ? 'WeakMapConstructor' : never;
+  WeakSet: T extends WeakSet<infer V> ? `WeakSet<${Stringify<V>}` : never;
+  WeakSetConstructor: Equals<T, WeakSetConstructor> extends true ? 'WeakSetConstructor' : never;
+
+  /* Structured data */
+  ArrayBuffer: T extends ArrayBuffer ? 'ArrayBuffer' : never;
+  ArrayBufferConstructor: Equals<T, ArrayBufferConstructor> extends true ? 'ArrayBufferConstructor'
+  : never;
+  SharedArrayBuffer: T extends SharedArrayBuffer ? 'SharedArrayBuffer' : never;
+  SharedArrayBufferConstructor: Equals<T, SharedArrayBufferConstructor> extends true ?
+    'SharedArrayBufferConstructor'
+  : never;
+  DataView: T extends DataView<ArrayBufferLike> ? 'DataView'
+  : T extends DataView<infer B> ? `DataView<${Stringify<B>}`
+  : never;
+  DataViewConstructor: Equals<T, DataViewConstructor> extends true ? 'DataViewConstructor' : never;
+  Atomics: Equals<T, Atomics> extends true ? 'Atomics' : never;
+  JSON: Equals<T, JSON> extends true ? 'JSON' : never;
+
+  /* Control abstraction objects */
+  Iterator: T extends Iterator<infer T, infer TReturn, infer TNext> ?
+    `Iterator<${Stringify<T>}, ${Stringify<TReturn>}, ${Stringify<TNext>}`
+  : never;
+  AsyncIterator: T extends AsyncIterator<infer T, infer TReturn, infer TNext> ?
+    `AsyncIterator<${Stringify<T>}, ${Stringify<TReturn>}, ${Stringify<TNext>}`
+  : never;
+
+  /* Reflection */
+  Reflect: Equals<T, typeof Reflect> extends true ? 'typeof Reflect' : never;
+  ProxyConstructor: Equals<T, ProxyConstructor> extends true ? 'ProxyConstructor' : never;
+
+  /* Internationalization */
+  Intl: Equals<T, typeof Intl> extends true ? 'typeof Intl' : never;
+  'Intl.Collator': T extends Intl.Collator ? 'Intl.Collator' : never;
+  'Intl.CollatorConstructor': Equals<T, Intl.CollatorConstructor> extends true ?
+    'Intl.CollatorConstructor'
+  : never;
+  'Intl.DateTimeFormat': T extends Intl.DateTimeFormat ? 'Intl.DateTimeFormat' : never;
+  'Intl.DateTimeFormatConstructor': Equals<T, Intl.DateTimeFormatConstructor> extends true ?
+    'Intl.DateTimeFormatConstructor'
+  : never;
+  'Intl.DisplayNames': T extends Intl.DisplayNames ? 'Intl.DisplayNames' : never;
+  'Intl.DisplayNamesConstructor': Equals<T, typeof Intl.DisplayNames> extends true ?
+    'Intl.DisplayNamesConstructor'
+  : never;
+  'Intl.Locale': T extends Intl.Locale ? 'Intl.Locale' : never;
+  'Intl.LocaleConstructor': Equals<T, typeof Intl.Locale> extends true ? 'Intl.LocaleConstructor'
+  : never;
+  'Intl.NumberFormat': T extends Intl.NumberFormat ? 'Intl.NumberFormat' : never;
+  'Intl.NumberFormatConstructor': Equals<T, Intl.NumberFormatConstructor> extends true ?
+    'Intl.NumberFormatConstructor'
+  : never;
+  'Intl.PluralRules': T extends Intl.PluralRules ? 'Intl.PluralRules' : never;
+  'Intl.PluralRulesConstructor': Equals<T, Intl.PluralRulesConstructor> extends true ?
+    'Intl.PluralRulesConstructor'
+  : never;
+  'Intl.RelativeTimeFormat': T extends Intl.RelativeTimeFormat ? 'Intl.RelativeTimeFormat' : never;
+  'Intl.RelativeTimeFormatConstructor': Equals<T, typeof Intl.RelativeTimeFormat> extends true ?
+    'Intl.RelativeTimeFormatConstructor'
+  : never;
+}
+
+type GetSerializer<T> = _GetSerializer<T, keyof StringifySerializer<T>>;
+type _GetSerializer<T, K extends keyof StringifySerializer<T>> =
+  [K] extends [LastOf<K>] ? StringifySerializer<T>[K]
+  : [StringifySerializer<T>[LastOf<K>]] extends [never] ? _GetSerializer<T, Exclude<K, LastOf<K>>>
+  : StringifySerializer<T>[LastOf<K>];
 
 /**
  * Stringify a type.
@@ -47,39 +200,65 @@ type _IsVisited<T, Visited extends unknown[]> =
   : false;
 
 type _Stringify<T, Visited extends unknown[], Options extends StringifyOptions> =
+  // `any` and `never` should be handled first because of their special behavior
   IsAny<T> extends true ? 'any'
   : IsNever<T> extends true ? 'never'
   : Equals<T, unknown> extends true ? 'unknown'
+  : // We must handle `Boolean` and `boolean` just after because they are unions
+  // Sadly, `Boolean` and `boolean` are not the same type, so we need to handle them separately,
+  // so is the case for `String/Number/BigInt/Symbol/Object`
+  Equals<T, Boolean> extends true ? 'Boolean'
+  : UnionHas<T, Boolean> extends true ?
+    Options['wrapParenthesesIfUnion'] extends true ?
+      `(Boolean | ${_Stringify<Exclude<T, Boolean>, [...Visited, T], Options>})`
+    : `Boolean | ${_Stringify<Exclude<T, Boolean>, [...Visited, T], Options>}`
   : Equals<T, boolean> extends true ? 'boolean'
-  : Equals<T, {}> extends true ? '{}'
-  : boolean extends T ?
+  : UnionHas<T, boolean> extends true ?
     Options['wrapParenthesesIfUnion'] extends true ?
       `(boolean | ${_Stringify<Exclude<T, boolean>, [...Visited, T], Options>})`
     : `boolean | ${_Stringify<Exclude<T, boolean>, [...Visited, T], Options>}`
-  : _IsVisited<T, Visited> extends true ? '...'
-  : JoinStringUnion<
+  : // Handle visited types to avoid infinite recursion
+  _IsVisited<T, Visited> extends true ? '...'
+  : // Force distribute for union types
+    JoinStringUnion<
       T extends T ?
-        Equals<T, string> extends true ? 'string'
+        /* Custom serializers */
+        IsNever<GetSerializer<T>> extends false ? GetSerializer<T>
+        : /* string */
+        Equals<T, String> extends true ? 'String'
+        : Equals<T, string> extends true ? 'string'
         : T extends string ?
           Options['quote'] extends 'single' ?
             `'${T}'`
           : `"${T}"`
+        : /* number/bigint */
+        Equals<T, Number> extends true ? 'Number'
         : Equals<T, number> extends true ? 'number'
         : T extends number ? `${T}`
+        : Equals<T, BigInt> extends true ? 'BigInt'
         : Equals<T, bigint> extends true ? 'bigint'
         : T extends bigint ? `${T}n`
-        : T extends true ? 'true'
+        : /* boolean */
+        // `Boolean` and `boolean` are handled above
+        T extends true ? 'true'
         : T extends false ? 'false'
+        : /* symbol */
+        Equals<T, Symbol> extends true ? 'Symbol'
         : Equals<T, symbol> extends true ? 'symbol'
         : T extends symbol ? `unique symbol`
-        : Equals<T, void> extends true ? 'void'
+        : /* void/null/undefined */
+        Equals<T, void> extends true ? 'void'
         : T extends null ? 'null'
         : T extends undefined ? 'undefined'
-        : Equals<T, typeof globalThis> extends true ? 'typeof globalThis'
-        : T extends Date ? 'Date'
-        : T extends RegExp ? 'RegExp'
+        : /* function */
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+        Equals<T, Function> extends true ? 'Function'
         : T extends (...args: never[]) => unknown ? StringifyFunction<T, [...Visited, T], Options>
         : T extends readonly unknown[] ? StringifyArray<T, [...Visited, T], Options>
+        : /* object */
+        Equals<T, Object> extends true ? 'Object'
+        : Equals<T, object> extends true ? 'object'
+        : Equals<T, {}> extends true ? '{}'
         : T extends object ? StringifyObject<T, [...Visited, T], Options>
         : '...'
       : never,
@@ -109,6 +288,14 @@ type IntersectOf<U> =
   (U extends unknown ? (_: U) => void : never) extends (mergedIntersection: infer I) => void ?
     I & U // The `& U` is to allow indexing by the resulting type
   : never;
+
+/**
+ * Check if a union type has a specific type.
+ */
+type UnionHas<Union, T> =
+  [Union] extends [LastOf<Union>] ? Equals<Union, T>
+  : Equals<LastOf<Union>, T> extends true ? true
+  : UnionHas<Exclude<Union, LastOf<Union>>, T>;
 
 /**
  * Stringify a function type.

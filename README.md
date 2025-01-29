@@ -407,6 +407,25 @@ export default defineConfig({
 
 **⚠ Warning:** Don’t forget to add `chalk` to your `devDependencies` (or `dependencies` if you’re developing a plugin) in `package.json` to avoid circular dependencies error when Typroof is loading config.
 
+> [!TIP]
+>
+> `Stringify` supports custom serializers. Say you have a custom type `interface Response<T> { code: number; data: T }`. Instead of receiving `"{ code: number; data: string }"` as the result of `Stringify<Response<string>>`, you might prefer the more concise `"Response<string>"`. You can achieve this by adding a custom serializer to `Stringify` via the [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) syntax:
+>
+> ```typescript
+> import { Stringify } from 'typroof';
+>
+> declare module 'typroof' {
+>   interface StringifySerializer<T> {
+>     Response: T extends Response<infer U> ? `Response<${Stringify<U>}>` : never;
+>   }
+> }
+>
+> type TestResult = Stringify<Response<string>>;
+> //   ^?: "Response<string>"
+> ```
+>
+> Custom serializers also boost `Stringify` utility’s speed in computing results, which can prevent Typroof from slowing down or crashing when handling complex types.
+
 If you want to publish your plugin as a library, it is recommended to export the factory function to create the plugin object as the default export, and export the matchers as named exports:
 
 ```typescript
