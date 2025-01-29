@@ -113,6 +113,15 @@ export interface StringifySerializer<T> {
   AsyncIterator: T extends AsyncIterator<infer T, infer TReturn, infer TNext> ?
     `AsyncIterator<${Stringify<T>}, ${Stringify<TReturn>}, ${Stringify<TNext>}`
   : never;
+  Generator: T extends Generator<infer T, infer TReturn, infer TNext> ?
+    `Generator<${Stringify<T>}, ${Stringify<TReturn>}, ${Stringify<TNext>}`
+  : never;
+  GeneratorFunction: Equals<T, GeneratorFunction> extends true ? 'GeneratorFunction' : never;
+  AsyncGenerator: T extends AsyncGenerator<infer T, infer TReturn, infer TNext> ?
+    `AsyncGenerator<${Stringify<T>}, ${Stringify<TReturn>}, ${Stringify<TNext>}`
+  : never;
+  AsyncGeneratorFunction: Equals<T, AsyncGeneratorFunction> extends true ? 'AsyncGeneratorFunction'
+  : never;
 
   /* Reflection */
   Reflect: Equals<T, typeof Reflect> extends true ? 'typeof Reflect' : never;
