@@ -1,5 +1,5 @@
 import type { Validator } from './assert';
-import type { TyproofProject } from '../test';
+import type { TyproofProject } from '../runtime';
 import type { CallExpression, Diagnostic, Node, SourceFile, Type, ts } from 'ts-morph';
 
 export interface ToAnalyze<T = never> {

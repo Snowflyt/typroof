@@ -1,5 +1,5 @@
 import type { Plugin } from './plugin';
-import type { TyproofProjectOptions } from './test';
+import type { TyproofProjectOptions } from './runtime';
 
 /**
  * The typroof config.

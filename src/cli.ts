@@ -5,7 +5,7 @@ import meow from 'meow';
 
 import { registerBuiltinAnalyzers } from './assertions/assert';
 import { loadConfig } from './config-helpers';
-import { createTyproofProject, formatGroupResult, formatSummary, summary } from './test';
+import { createTyproofProject, formatGroupResult, formatSummary, summary } from './runtime';
 
 const cli = meow(
   `

@@ -5,7 +5,7 @@ import { loadConfig } from './config-helpers';
 import { createTyproofProject } from './test';
 
 import type { Config } from './config';
-import type { CheckResult } from './test';
+import type { CheckResult } from './runtime';
 
 /**
  * Check all type test files in the current working directory.
