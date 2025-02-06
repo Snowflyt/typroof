@@ -216,15 +216,30 @@ type CallValidator<V extends Validator, Actual, Expected, IsNegated extends bool
     R
   : never;
 
+/**
+ * An interface to provide readable compile-time error messages.
+ */
+interface ValidationError<Tag, Actual, Expected> {
+  tag: Tag;
+  actual: Actual;
+  expected: Expected;
+}
+/**
+ * An interface to provide readable compile-time error messages.
+ */
+interface NotTo<Tag extends string> {
+  not: Tag;
+}
+
 export interface Expect<T> {
   to: <Tag extends keyof ValidatorRegistry, U>(
     match: [CallValidator<ValidatorRegistry[Tag], T, U, false>] extends [never] ?
-      `Validation failed: ${Tag}<${Stringify<T>}, ${Stringify<U>}>`
+      ValidationError<Tag, T, U>
     : CallValidator<ValidatorRegistry[Tag], T, U, false> extends true | ToAnalyze<unknown> ?
       (() => Match<Tag, U>) | Match<Tag, U>
     : CallValidator<ValidatorRegistry[Tag], T, U, false> extends string ?
       CallValidator<ValidatorRegistry[Tag], T, U, false>
-    : `Validation failed: ${Tag}<${Stringify<T>}, ${Stringify<U>}>`,
+    : ValidationError<Tag, T, U>,
   ) => [CallValidator<ValidatorRegistry[Tag], T, U, false>] extends [never] ? 'fail'
   : CallValidator<ValidatorRegistry[Tag], T, U, false> extends true ? 'pass'
   : CallValidator<ValidatorRegistry[Tag], T, U, false> extends ToAnalyze<unknown> ?
@@ -232,12 +247,13 @@ export interface Expect<T> {
   : 'fail';
   not: {
     to: <Tag extends keyof ValidatorRegistry, U>(
-      match: [CallValidator<ValidatorRegistry[Tag], T, U, true>] extends [never] ? 'fail'
+      match: [CallValidator<ValidatorRegistry[Tag], T, U, true>] extends [never] ?
+        ValidationError<NotTo<Tag>, T, U>
       : CallValidator<ValidatorRegistry[Tag], T, U, true> extends false | ToAnalyze<unknown> ?
         (() => Match<Tag, U>) | Match<Tag, U>
       : CallValidator<ValidatorRegistry[Tag], T, U, true> extends string ?
         CallValidator<ValidatorRegistry[Tag], T, U, true>
-      : `Validation failed: not ${Tag}<${Stringify<T>}, ${Stringify<U>}>`,
+      : ValidationError<NotTo<Tag>, T, U>,
     ) => [CallValidator<ValidatorRegistry[Tag], T, U, true>] extends [never] ? 'fail'
     : CallValidator<ValidatorRegistry[Tag], T, U, true> extends false ? 'pass'
     : CallValidator<ValidatorRegistry[Tag], T, U, true> extends ToAnalyze<unknown> ?
