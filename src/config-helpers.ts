@@ -7,7 +7,7 @@ import { getTsconfig } from 'get-tsconfig';
 import { registerAnalyzer } from './assertions/matcher';
 import { omit } from './utils/object';
 
-import type { Validator } from './assertions';
+import type { Validator } from './assertions/assert';
 import type { Config } from './config';
 
 const CONFIG_BASE_NAME = 'typroof.config';

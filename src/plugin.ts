@@ -1,4 +1,5 @@
-import type { Analyzer, Match, Validator } from './assertions';
+import type { Validator } from './assertions/assert';
+import type { Analyzer, Match } from './assertions/matcher';
 
 export interface Plugin {
   name: string;
@@ -19,5 +20,12 @@ export interface Plugin {
 export const match = <Tag extends keyof Validator<unknown, unknown>, T = never>() =>
   ({}) as Match<Tag, T>;
 
-export type { Analyzer, AnalyzerMeta, ToAnalyze } from './assertions';
-export type { Match };
+export type { Validator } from './assertions/assert';
+export type { Analyzer, AnalyzerMeta, Match, ToAnalyze } from './assertions/matcher';
+
+export type {
+  Stringify,
+  StringifyOptions,
+  StringifyOptionsDefault,
+  StringifySerializer,
+} from './tools';

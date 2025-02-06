@@ -1,8 +1,5 @@
 export { expect } from './assert';
 
-export type { Validator } from './assert';
-export type { Analyzer, AnalyzerMeta, Match, ToAnalyze } from './matcher';
-
 export { beAny } from './impl/beAny';
 export { beFalse } from './impl/beFalse';
 export { beNever } from './impl/beNever';
