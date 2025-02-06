@@ -219,6 +219,7 @@ Take a look at how the `equal` matcher is implemented:
 // `registerAnalyzer` is not actually exported,
 // it is just an example to show how to create custom matchers.
 import { match, registerAnalyzer } from 'typroof/plugin';
+import type { Actual, Expected, Validator } from 'typroof/plugin';
 
 // `equal` is a matcher that takes a type argument.
 // If no argument is needed, you can simply use `match<'matcherName'>()`
@@ -234,17 +235,21 @@ type Equals<T, U> =
 
 // Define how the type level validation step works.
 // If type-level validation is the only thing you need to do (e.g., `equal`),
-// it should return a boolean type.
+// it should be a `Validator` returning a boolean type.
 // Otherwise, it should return a `ToAnalyze<SomeType>`, e.g. `error` returns
 // `ToAnalyze<never>`, the `ToAnalyze` means to determine whether the assertion
 // passed or not needs further code analysis. You can pass any type to
 // `ToAnalyze` for the code analysis step to use, but here `error` does not need it.
-declare module 'typroof' {
-  interface Validator<T, U> {
+declare module 'typroof/plugin' {
+  interface ValidatorRegistry {
     // Here `equal` is the name of the matcher,
     // it must be the same as that in `match<'equal'>()`.
-    equal: Equals<T, U>;
+    equal: EqualValidator;
   }
+}
+// Use a type-level function (i.e. HKT) to define a type-level validator.
+interface EqualValidator extends Validator {
+  return: Equals<Actual<this>, Expected<this>>;
 }
 
 // The `registerToEqual` helper function should be called somewhere before code analysis is
@@ -278,6 +283,8 @@ export const registerToEqual = () => {
 };
 ```
 
+`Validator`s in Typroof are type-level functions (HKTs) compatible with the [hkt-core](https://github.com/Snowflyt/hkt-core) V1 standard, see [its documentation](https://github.com/Snowflyt/hkt-core) for more information.
+
 And that is all. As you see here, it is really easy to create custom matchers, and highly customizable powered by ts-morph.
 
 Typroof automatically generates a compile-time error message if the assertion fails:
@@ -292,20 +299,23 @@ expect<Append<'foo', 'bar'>>().to(equal<'foo'>);
 But if you want a more readable error message, you can change the validator to return a string instead of a boolean if the assertion fails:
 
 ```typescript
-import type { Stringify } from 'typroof';
+import type { Actual, Expected, IsNegated, Stringify, Validator } from 'typroof/plugin';
 
-declare module 'typroof' {
-  interface Validator<T, U, Not extends boolean> {
-    // `Not` is `true` if `.not` is used, otherwise `false`.
-    equal: Not extends false ?
-      // If `.not` is not used, return a string as the error message if `T` is not equal to `U`
-      Equals<T, U> extends true ?
-        true
-      : `Expect \`${Stringify<T>}\` to equal \`${Stringify<U>}\`, but does not`
-    : // If `.not` is used, return a string as the error message if `T` is equal to `U`
-    Equals<T, U> extends false ? false
-    : `Expect the type not to equal \`${Stringify<U>}\`, but does`;
+declare module 'typroof/plugin' {
+  interface ValidatorRegistry {
+    equal: EqualValidator;
   }
+}
+interface EqualValidator extends Validator {
+  // `IsNegated<this>` is `true` if `.not` is used, otherwise `false`.
+  return: IsNegated<this> extends false ?
+    // If `.not` is not used, return a string as the error message if `T` is not equal to `U`
+    Equals<Actual<this>, Expected<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to equal \`${Stringify<Expected<this>>}\`, but does not`
+  : // If `.not` is used, return a string as the error message if `T` is equal to `U`
+  Equals<Actual<this>, Expected<this>> extends false ? false
+  : `Expect the type not to equal \`${Stringify<Expected<this>>}\`, but does`;
 }
 ```
 
@@ -318,10 +328,13 @@ import type { ToAnalyze } from 'typroof/plugin';
 
 export const error = match<'error'>();
 
-declare module 'typroof' {
-  interface Validator<T, U> {
-    error: ToAnalyze<never>;
+declare module 'typroof/plugin' {
+  interface ValidatorRegistry {
+    error: ErrorValidator;
   }
+}
+interface ErrorValidator {
+  return: ToAnalyze<never>;
 }
 
 export const registerToError = () => {
@@ -363,16 +376,19 @@ So how to extend Typroof with your own matchers? The code below shows how to do 
 
 ```typescript
 // In your entry file, e.g., `index.ts` or `main.ts`.
-declare module 'typroof' {
-  interface Validator<T, U, Not> {
-    // Define your validator here
-    beFoo: Not extends false ?
-      T extends 'foo' ?
-        true
-      : `Expect \`${Stringify<T>}\` to be \`'foo'\`, but does not`
-    : T extends 'foo' ? `Expect the type not to be \`'foo'\`, but does`
-    : false;
+declare module 'typroof/plugin' {
+  interface ValidatorRegistry {
+    beFoo: BeFooValidator;
   }
+}
+interface BeFooValidator extends Validator {
+  // Define the return type of your validator
+  return: IsNegated<this> extends false ?
+    Actual<this> extends 'foo' ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to be \`'foo'\`, but does not`
+  : Actual<this> extends 'foo' ? `Expect the type not to be \`'foo'\`, but does`
+  : false;
 }
 
 // In your `typroof.config.ts`
@@ -412,17 +428,26 @@ export default defineConfig({
 > `Stringify` supports custom serializers. Say you have a custom type `interface Response<T> { code: number; data: T }`. Instead of receiving `"{ code: number; data: string }"` as the result of `Stringify<Response<string>>`, you might prefer the more concise `"Response<string>"`. You can achieve this by adding a custom serializer to `Stringify` via the [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) syntax:
 >
 > ```typescript
-> import { Stringify } from 'typroof';
+> import type { Serializer, Stringify, Type } from 'typroof/plugin';
 >
-> declare module 'typroof' {
->   interface StringifySerializer<T> {
->     Response: T extends Response<infer U> ? `Response<${Stringify<U>}>` : never;
+> declare module 'typroof/plugin' {
+>   interface StringifySerializerRegistry {
+>     Response: { if: ['extends', Response<unknown>]; serializer: ResponseSerializer };
 >   }
+> }
+> interface ResponseSerializer extends Serializer<Response<unknown>> {
+>   return: `Response<${Type<this>['data']}>`;
 > }
 >
 > type TestResult = Stringify<Response<string>>;
 > //   ^?: "Response<string>"
 > ```
+>
+> Similar to `Validator`s, `Serializer`s are also type-level function but return a string type. The `Type<this>` utility type is used to get the type passed to the current serializer. Except for the `serializer` property, you also have to add a `if` property as a predicate to determine whether the serializer should be used. Valid forms of the `if` property are:
+>
+> - `['extends', T]`: The type must extend `T`.
+> - `['equals', T]`: The type must be exactly equal to `T`.
+> - A custom type-level function (HKT) that returns a boolean type. See the documentation of [hkt-core](https://github.com/Snowflyt/hkt-core) for more information.
 >
 > Custom serializers also boost `Stringify` utility’s speed in computing results, which can prevent Typroof from slowing down or crashing when handling complex types.
 
@@ -434,14 +459,9 @@ import { match } from 'typroof/plugin';
 
 import type { Plugin } from 'typroof/plugin';
 
-declare module 'typroof' {
-  interface Validator<T, U> {
-    beFoo: Not extends false ?
-      T extends 'foo' ?
-        true
-      : `Expect \`${Stringify<T>}\` to be \`'foo'\`, but does not`
-    : T extends 'foo' ? `Expect the type not to be \`'foo'\`, but does`
-    : false;
+declare module 'typroof/plugin' {
+  interface ValidatorRegistry {
+    beFoo: /* ... */;
   }
 }
 

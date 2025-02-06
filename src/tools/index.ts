@@ -2,7 +2,7 @@ export type {
   Stringify,
   StringifyOptions,
   StringifyOptionsDefault,
-  StringifySerializer,
+  StringifySerializerRegistry,
 } from './stringify';
 
 export type * from './boolean';

@@ -1,4 +1,4 @@
-import type { Validator } from './assert';
+import type { ValidatorRegistry } from './assert';
 import type { TyproofProject } from '../runtime';
 import type { CallExpression, Diagnostic, Node, SourceFile, Type, ts } from 'ts-morph';
 
@@ -6,7 +6,7 @@ export interface ToAnalyze<T = never> {
   'typroof/ToAnalyze': T;
 }
 
-export interface Match<Tag extends keyof Validator<unknown, unknown, boolean>, T = never> {
+export interface Match<Tag extends keyof ValidatorRegistry, T = never> {
   'typroof/Match': Tag;
   type: T;
 }
@@ -21,8 +21,7 @@ export interface Match<Tag extends keyof Validator<unknown, unknown, boolean>, T
  * export const equal = <U>(y?: U) => match<'equal', U>();
  * ```
  */
-export const match = <Tag extends keyof Validator<unknown, unknown, boolean>, T = never>() =>
-  ({}) as Match<Tag, T>;
+export const match = <Tag extends keyof ValidatorRegistry, T = never>() => ({}) as Match<Tag, T>;
 
 export const analyzers = new Map<string, Analyzer>();
 
@@ -95,10 +94,12 @@ export type Analyzer = (
  * Register an analyzer.
  * @param tag The matcher tag.
  * @param analyzer The analyzer function.
+ * @private
  *
  * @example
  * ```typescript
- * import { match, registerAnalyzer } from 'typroof';
+ * import { match } from 'typroof/plugin';
+ * import type { Actual, Expected, Validator } from 'typroof/plugin';
  *
  * // `equal` is a matcher that takes a type argument.
  * // If no argument is needed, you can simply use `match<'matcherName'>()`
@@ -113,17 +114,22 @@ export type Analyzer = (
  *
  * // Define how the type level validation step works.
  * // If type level validation is the only thing you need to do (e.g., `equal`),
- * // it should return a boolean type.
+ * // it should be a `Validator` returning a boolean type.
  * // Otherwise, it should return a `ToAnalyze<SomeType>`, e.g. `error` returns
  * // `ToAnalyze<never>`, the `ToAnalyze` means to determine whether the assertion
  * // passed or not needs further code analysis. You can pass any type to
  * // `ToAnalyze` for the code analysis step to use, but here `error` does not need it.
- * declare module 'typroof' {
- *   interface Validator<T, U> {
+ * declare module 'typroof/plugin' {
+ *   interface ValidatorRegistry {
  *     // Here `equal` is the name of the matcher,
  *     // it must be the same as that in `match<'equal'>()`.
- *     equal: Equals<T, U>;
+ *     equal: EqualValidator;
  *   }
+ * }
+ * // Use a type-level function (i.e. HKT, see [hkt-core](https://github.com/Snowflyt/hkt-core)) to
+ * // define a type-level validator.
+ * interface EqualValidator extends Validator {
+ *   return: Equals<Actual<this>, Expected<this>>;
  * }
  *
  * // The `registerToEqual` function is called somewhere before code analysis is executed.
@@ -156,7 +162,7 @@ export type Analyzer = (
  * };
  * ```
  */
-export const registerAnalyzer = <Tag extends keyof Validator<unknown, unknown, boolean>>(
+export const registerAnalyzer = <Tag extends keyof ValidatorRegistry>(
   tag: Tag,
   analyzer: Analyzer,
 ) => {

@@ -2,7 +2,7 @@ import path from 'node:path';
 
 import { registerBuiltinAnalyzers } from './assertions/assert';
 import { loadConfig } from './config-helpers';
-import { createTyproofProject } from './test';
+import { createTyproofProject } from './runtime';
 
 import type { Config } from './config';
 import type { CheckResult } from './runtime';

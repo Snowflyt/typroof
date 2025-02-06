@@ -33,6 +33,7 @@ import type {
   StrictExtends,
   Stringify,
 } from '../tools';
+import type { Actual, Expected, IsNegated, Validator } from '../tools/HKT';
 import type { Project } from 'ts-morph';
 
 /**
@@ -71,115 +72,176 @@ export const registerBuiltinAnalyzers = (() => {
 /**
  * Validators for matchers.
  */
-export interface Validator<T = unknown, U = unknown, Not extends boolean = boolean> {
-  error: ToAnalyze;
+export interface ValidatorRegistry {
+  error: ErrorValidator;
 
-  equal: Not extends false ?
-    Equals<T, U> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to equal \`${Stringify<U>}\`, but does not`
-  : Equals<T, U> extends false ? false
-  : `Expect the type not to equal \`${Stringify<U>}\`, but does`;
+  equal: EqualValidator;
 
-  beAny: Not extends false ?
-    IsAny<T> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to be \`any\`, but is not`
-  : IsAny<T> extends false ? false
-  : `Expect the type not to be \`any\`, but is`;
-  beNever: Not extends false ?
-    IsNever<T> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to be \`never\`, but is not`
-  : IsNever<T> extends false ? false
-  : `Expect the type not to be \`never\`, but is`;
-  beNull: Not extends false ?
-    IsNull<T> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to be \`null\`, but is not`
-  : IsNull<T> extends false ? false
-  : `Expect the type not to be \`null\`, but is`;
-  beUndefined: Not extends false ?
-    IsUndefined<T> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to be \`undefined\`, but is not`
-  : IsUndefined<T> extends false ? false
-  : `Expect the type not to be \`undefined\`, but is`;
-  beNullish: Not extends false ?
-    IsNullish<T> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to be \`null\`, \`undefined\` or \`null | undefined\`, but is not`
-  : IsNullish<T> extends false ? false
-  : `Expect the type not to be \`null\`, \`undefined\` or \`null | undefined\`, but is`;
+  beAny: BeAnyValidator;
+  beNever: BeNeverValidator;
+  beNull: BeNullValidator;
+  beUndefined: BeUndefinedValidator;
+  beNullish: BeNullishValidator;
 
-  matchBoolean: Not extends false ?
-    MatchesBoolean<T> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to be boolean, but is not`
-  : MatchesBoolean<T> extends false ? false
-  : `Expect the type not to be boolean, but is`;
-  beTrue: Not extends false ?
-    IsTrue<T> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to be \`true\`, but is not`
-  : IsTrue<T> extends false ? false
-  : `Expect the type not to be \`true\`, but is`;
-  beFalse: Not extends false ?
-    IsFalse<T> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to be \`false\`, but is not`
-  : IsFalse<T> extends false ? false
-  : `Expect the type not to be \`false\`, but is`;
+  matchBoolean: MatchBooleanValidator;
+  beTrue: BeTrueValidator;
+  beFalse: BeFalseValidator;
 
-  extend: Not extends false ?
-    Extends<T, U> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to extend \`${Stringify<U>}\`, but does not`
-  : Extends<T, U> extends false ? false
-  : `Expect \`${Stringify<T>}\` not to extend \`${Stringify<U>}\`, but does`;
-  strictExtend: Not extends false ?
-    StrictExtends<T, U> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to strictly extend \`${Stringify<U>}\`, but does not`
-  : StrictExtends<T, U> extends false ? false
-  : `Expect \`${Stringify<T>}\` not to strictly extend \`${Stringify<U>}\`, but does`;
+  extend: ExtendValidator;
+  strictExtend: StrictExtendValidator;
 
-  cover: Not extends false ?
-    Covers<T, U> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to cover \`${Stringify<U>}\`, but does not`
-  : Covers<T, U> extends false ? false
-  : `Expect \`${Stringify<T>}\` not to cover \`${Stringify<U>}\`, but does`;
-  strictCover: Not extends false ?
-    StrictCovers<T, U> extends true ?
-      true
-    : `Expect \`${Stringify<T>}\` to strictly cover \`${Stringify<U>}\`, but does not`
-  : StrictCovers<T, U> extends false ? false
-  : `Expect \`${Stringify<T>}\` not to strictly cover \`${Stringify<U>}\`, but does`;
+  cover: CoverValidator;
+  strictCover: StrictCoverValidator;
 }
 
+/* Validators start */
+interface ErrorValidator extends Validator {
+  return: ToAnalyze;
+}
+
+interface EqualValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    Equals<Actual<this>, Expected<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to equal \`${Stringify<Expected<this>>}\`, but does not`
+  : Equals<Actual<this>, Expected<this>> extends false ? false
+  : `Expect the type not to equal \`${Stringify<Expected<this>>}\`, but does`;
+}
+
+interface BeAnyValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    IsAny<Actual<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to be \`any\`, but is not`
+  : IsAny<Actual<this>> extends false ? false
+  : `Expect the type not to be \`any\`, but is`;
+}
+interface BeNeverValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    IsNever<Actual<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to be \`never\`, but is not`
+  : IsNever<Actual<this>> extends false ? false
+  : `Expect the type not to be \`never\`, but is`;
+}
+interface BeNullValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    IsNull<Actual<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to be \`null\`, but is not`
+  : IsNull<Actual<this>> extends false ? false
+  : `Expect the type not to be \`null\`, but is`;
+}
+interface BeUndefinedValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    IsUndefined<Actual<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to be \`undefined\`, but is not`
+  : IsUndefined<Actual<this>> extends false ? false
+  : `Expect the type not to be \`undefined\`, but is`;
+}
+interface BeNullishValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    IsNullish<Actual<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to be \`null\`, \`undefined\` or \`null | undefined\`, but is not`
+  : IsNullish<Actual<this>> extends false ? false
+  : `Expect the type not to be \`null\`, \`undefined\` or \`null | undefined\`, but is`;
+}
+
+interface MatchBooleanValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    MatchesBoolean<Actual<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to be \`boolean\`, \`true\` or \`false\`, but is not`
+  : MatchesBoolean<Actual<this>> extends false ? false
+  : `Expect the type not to be \`boolean\`, \`true\` or \`false\`, but is`;
+}
+interface BeTrueValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    IsTrue<Actual<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to be \`true\`, but is not`
+  : IsTrue<Actual<this>> extends false ? false
+  : `Expect the type not to be \`true\`, but is`;
+}
+interface BeFalseValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    IsFalse<Actual<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to be \`false\`, but is not`
+  : IsFalse<Actual<this>> extends false ? false
+  : `Expect the type not to be \`false\`, but is`;
+}
+
+interface ExtendValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    Extends<Actual<this>, Expected<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to extend \`${Stringify<Expected<this>>}\`, but does not`
+  : Extends<Actual<this>, Expected<this>> extends false ? false
+  : `Expect \`${Stringify<Actual<this>>}\` not to extend \`${Stringify<Expected<this>>}\`, but does`;
+}
+interface StrictExtendValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    StrictExtends<Actual<this>, Expected<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to strictly extend \`${Stringify<Expected<this>>}\`, but does not`
+  : StrictExtends<Actual<this>, Expected<this>> extends false ? false
+  : `Expect \`${Stringify<Actual<this>>}\` not to strictly extend \`${Stringify<Expected<this>>}\`, but does`;
+}
+
+interface CoverValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    Covers<Actual<this>, Expected<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to cover \`${Stringify<Expected<this>>}\`, but does not`
+  : Covers<Actual<this>, Expected<this>> extends false ? false
+  : `Expect \`${Stringify<Actual<this>>}\` not to cover \`${Stringify<Expected<this>>}\`, but does`;
+}
+interface StrictCoverValidator extends Validator {
+  return: IsNegated<this> extends false ?
+    StrictCovers<Actual<this>, Expected<this>> extends true ?
+      true
+    : `Expect \`${Stringify<Actual<this>>}\` to strictly cover \`${Stringify<Expected<this>>}\`, but does not`
+  : StrictCovers<Actual<this>, Expected<this>> extends false ? false
+  : `Expect \`${Stringify<Actual<this>>}\` not to strictly cover \`${Stringify<Expected<this>>}\`, but does`;
+}
+/* Validators end */
+
+type CallValidator<V extends Validator, Actual, Expected, IsNegated extends boolean> =
+  V & { readonly Args: (_: [Actual, Expected, IsNegated]) => void } extends (
+    { readonly return: infer R }
+  ) ?
+    R
+  : never;
+
 export interface Expect<T> {
-  to: <Tag extends keyof Validator<unknown, unknown, false>, U>(
-    match: [Validator<T, U, false>[Tag]] extends [never] ?
+  to: <Tag extends keyof ValidatorRegistry, U>(
+    match: [CallValidator<ValidatorRegistry[Tag], T, U, false>] extends [never] ?
       `Validation failed: ${Tag}<${Stringify<T>}, ${Stringify<U>}>`
-    : Validator<T, U, false>[Tag] extends true | ToAnalyze<unknown> ?
+    : CallValidator<ValidatorRegistry[Tag], T, U, false> extends true | ToAnalyze<unknown> ?
       (() => Match<Tag, U>) | Match<Tag, U>
-    : Validator<T, U, false>[Tag] extends string ? Validator<T, U, false>[Tag]
+    : CallValidator<ValidatorRegistry[Tag], T, U, false> extends string ?
+      CallValidator<ValidatorRegistry[Tag], T, U, false>
     : `Validation failed: ${Tag}<${Stringify<T>}, ${Stringify<U>}>`,
-  ) => [Validator<T, U, false>[Tag]] extends [never] ? 'fail'
-  : Validator<T, U, false>[Tag] extends true ? 'pass'
-  : Validator<T, U, false>[Tag] extends ToAnalyze<unknown> ? Validator<T, U, false>[Tag]
+  ) => [CallValidator<ValidatorRegistry[Tag], T, U, false>] extends [never] ? 'fail'
+  : CallValidator<ValidatorRegistry[Tag], T, U, false> extends true ? 'pass'
+  : CallValidator<ValidatorRegistry[Tag], T, U, false> extends ToAnalyze<unknown> ?
+    CallValidator<ValidatorRegistry[Tag], T, U, false>
   : 'fail';
   not: {
-    to: <Tag extends keyof Validator<unknown, unknown, true>, U>(
-      match: [Validator<T, U, true>[Tag]] extends [never] ? 'fail'
-      : Validator<T, U, true>[Tag] extends false | ToAnalyze<unknown> ?
+    to: <Tag extends keyof ValidatorRegistry, U>(
+      match: [CallValidator<ValidatorRegistry[Tag], T, U, true>] extends [never] ? 'fail'
+      : CallValidator<ValidatorRegistry[Tag], T, U, true> extends false | ToAnalyze<unknown> ?
         (() => Match<Tag, U>) | Match<Tag, U>
-      : Validator<T, U, true>[Tag] extends string ? Validator<T, U, true>[Tag]
+      : CallValidator<ValidatorRegistry[Tag], T, U, true> extends string ?
+        CallValidator<ValidatorRegistry[Tag], T, U, true>
       : `Validation failed: not ${Tag}<${Stringify<T>}, ${Stringify<U>}>`,
-    ) => [Validator<T, U, true>[Tag]] extends [never] ? 'fail'
-    : Validator<T, U, true>[Tag] extends false ? 'pass'
-    : Validator<T, U, true>[Tag] extends ToAnalyze<unknown> ? Validator<T, U, false>[Tag]
+    ) => [CallValidator<ValidatorRegistry[Tag], T, U, true>] extends [never] ? 'fail'
+    : CallValidator<ValidatorRegistry[Tag], T, U, true> extends false ? 'pass'
+    : CallValidator<ValidatorRegistry[Tag], T, U, true> extends ToAnalyze<unknown> ?
+      CallValidator<ValidatorRegistry[Tag], T, U, true>
     : 'fail';
   };
 }

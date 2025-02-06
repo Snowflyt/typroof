@@ -7,7 +7,7 @@ import { getTsconfig } from 'get-tsconfig';
 import { registerAnalyzer } from './assertions/matcher';
 import { omit } from './utils/object';
 
-import type { Validator } from './assertions/assert';
+import type { ValidatorRegistry } from './assertions/assert';
 import type { Config } from './config';
 
 const CONFIG_BASE_NAME = 'typroof.config';
@@ -46,7 +46,7 @@ export const loadConfig = async ({
         for (const plugin of config.plugins) {
           if (plugin.analyzers)
             for (const [key, analyzer] of Object.entries(plugin.analyzers))
-              registerAnalyzer(key as keyof Validator<unknown, unknown, boolean>, analyzer);
+              registerAnalyzer(key as keyof ValidatorRegistry, analyzer);
         }
 
         return omit(config, 'plugins');

@@ -1,9 +1,9 @@
-import type { Validator } from './assertions/assert';
+import type { ValidatorRegistry } from './assertions/assert';
 import type { Analyzer, Match } from './assertions/matcher';
 
 export interface Plugin {
   name: string;
-  analyzers: { readonly [P in keyof Validator<unknown, unknown>]?: Analyzer };
+  analyzers: { readonly [P in keyof ValidatorRegistry]?: Analyzer };
 }
 
 /**
@@ -17,15 +17,15 @@ export interface Plugin {
  * ```
  */
 // It is also defined in `./assertions/matcher.ts` to avoid circular dependency.
-export const match = <Tag extends keyof Validator<unknown, unknown>, T = never>() =>
-  ({}) as Match<Tag, T>;
+export const match = <Tag extends keyof ValidatorRegistry, T = never>() => ({}) as Match<Tag, T>;
 
-export type { Validator } from './assertions/assert';
+export type { ValidatorRegistry } from './assertions/assert';
 export type { Analyzer, AnalyzerMeta, Match, ToAnalyze } from './assertions/matcher';
 
 export type {
   Stringify,
   StringifyOptions,
   StringifyOptionsDefault,
-  StringifySerializer,
+  StringifySerializerRegistry,
 } from './tools';
+export type * from './tools/HKT';
