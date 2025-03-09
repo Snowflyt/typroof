@@ -1,6 +1,11 @@
-# Typroof
+<h1 align="center">Typroof</h1>
 
-> 🚀 **Revolutionize** your TS **type testing** with a fast, smooth, and flexible **WYSIWYG** experience!
+TypeScript **type testing** with a fast **CLI** tool and a smooth **WYSIWYG editor experience**.
+
+[![downloads](https://img.shields.io/npm/dm/typroof.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/typroof)
+[![version](https://img.shields.io/npm/v/typroof.svg?style=flat&colorA=000000&colorB=000000)](https://www.npmjs.com/package/typroof)
+[![test](https://img.shields.io/github/actions/workflow/status/Snowflyt/typroof/ci.yml?label=test&style=flat&colorA=000000&colorB=000000)](https://github.com/Snowflyt/typroof/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/typroof.svg?style=flat&colorA=000000&colorB=000000)](https://github.com/Snowflyt/typroof)
 
 https://github.com/user-attachments/assets/53aa8f97-c580-428e-89b2-2d07d1c5680d
 
@@ -8,10 +13,6 @@ https://github.com/user-attachments/assets/53aa8f97-c580-428e-89b2-2d07d1c5680d
 
 ```shell
 npm install --save-dev typroof
-# Or
-yarn add -D typroof
-# Or
-pnpm add -D typroof
 ```
 
 ## Overview
