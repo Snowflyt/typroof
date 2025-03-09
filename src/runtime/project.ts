@@ -71,7 +71,7 @@ export interface TyproofProjectOptions {
  * );
  * ```
  */
-export const createTyproofProject = (options?: TyproofProjectOptions): TyproofProject => {
+export function createTyproofProject(options?: TyproofProjectOptions): TyproofProject {
   const {
     projectOptions,
     testFiles: testFileGlobs,
@@ -110,4 +110,4 @@ export const createTyproofProject = (options?: TyproofProjectOptions): TyproofPr
       checkAnalyzeResult(analyzeTestFile(result as TyproofProject, file)),
   }) satisfies TyproofProject;
   return result;
-};
+}

@@ -277,10 +277,12 @@ export interface Expect<T> {
  * expect<'foo'>().not.to(extend<number>); // pass
  * ```
  */
-export const expect: <T>(t?: T) => Expect<T> = () => ({
-  to: (() => {}) as never,
-  not: { to: (() => {}) as never },
-});
+export function expect<T>(t?: T): Expect<T> {
+  return {
+    to: (() => {}) as never,
+    not: { to: (() => {}) as never },
+  };
+}
 
 const currentFilePathName = (() => {
   let result = '';

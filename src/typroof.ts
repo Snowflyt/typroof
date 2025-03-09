@@ -11,7 +11,7 @@ import { createTyproofProject } from './runtime';
  * @param options Options for checking the type test files.
  * @returns
  */
-export const typroof = async (options?: Config & { cwd?: string }): Promise<CheckResult[]> => {
+export async function typroof(options?: Config & { cwd?: string }): Promise<CheckResult[]> {
   const cwd = options?.cwd ?? process.cwd();
 
   registerBuiltinAnalyzers();
@@ -21,4 +21,4 @@ export const typroof = async (options?: Config & { cwd?: string }): Promise<Chec
     ...options,
   });
   return project.testFiles.map(project.checkTestFile);
-};
+}

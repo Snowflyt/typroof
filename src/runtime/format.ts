@@ -56,7 +56,7 @@ const groupFailCount = (group: GroupResult): number => {
  * @param indent The indentation level. Defaults to `0`.
  * @returns
  */
-export const formatGroupResult = (group: GroupResult, indent = 0): string => {
+export function formatGroupResult(group: GroupResult, indent = 0): string {
   let result = '';
 
   const icon = groupHasFails(group) ? yellow('❯') : green('✔');
@@ -68,14 +68,14 @@ export const formatGroupResult = (group: GroupResult, indent = 0): string => {
     else result += formatGroupResult(child, indent + 2) + '\n';
 
   return result.trimEnd();
-};
+}
 
 /**
  * Get a summary of the test results.
  * @param groups The groups of test results.
  * @returns
  */
-export const summary = (groups: readonly GroupResult[]) => {
+export function summary(groups: readonly GroupResult[]) {
   let testFileFailed = 0;
   let testCount = 0;
   let testFailed = 0;
@@ -87,18 +87,18 @@ export const summary = (groups: readonly GroupResult[]) => {
   }
 
   return { testFileCount: groups.length, testFileFailed, testCount, testFailed };
-};
+}
 
 /**
  * Format a summary of the test results.
  * @param options Options for formatting the summary.
  * @returns
  */
-export const formatSummary = (options: {
+export function formatSummary(options: {
   groups: readonly GroupResult[];
   startedAt?: Date;
   finishedAt?: Date;
-}): string => {
+}): string {
   const { finishedAt, groups, startedAt } = options;
 
   let result = '';
@@ -139,4 +139,4 @@ export const formatSummary = (options: {
       dim('   Duration  ') + String(Math.round(finishedAt.getTime() - startedAt.getTime())) + 'ms';
 
   return result;
-};
+}
