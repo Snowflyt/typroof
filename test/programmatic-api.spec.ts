@@ -1,5 +1,6 @@
-import typroof, { formatGroupResult, formatSummary } from 'typroof';
 import { describe, expect, it } from 'vitest';
+
+import typroof, { formatGroupResult, formatSummary } from 'typroof';
 
 const trimIndent = (str: string) => {
   const lines = str.split('\n');

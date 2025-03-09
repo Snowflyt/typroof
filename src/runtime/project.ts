@@ -1,21 +1,20 @@
 import path from 'node:path';
 
+import type { Diagnostic, ProjectOptions, SourceFile, Symbol } from 'ts-morph';
 import { Project } from 'ts-morph';
 
 import { getExpectSymbol } from '../assertions/assert';
 
 import { analyzeTestFile } from './analyze';
+import type { CheckResult } from './check';
 import { checkAnalyzeResult } from './check';
 import { getTestSymbols } from './test';
-
-import type { CheckResult } from './check';
-import type { Diagnostic, ProjectOptions, SourceFile, Symbol, ts } from 'ts-morph';
 
 /**
  * An extension of the ts-morph `Project`.
  */
 export interface TyproofProject extends Project {
-  readonly cachedPreEmitDiagnostics: readonly Diagnostic<ts.Diagnostic>[];
+  readonly cachedPreEmitDiagnostics: readonly Diagnostic[];
   readonly testFiles: readonly SourceFile[];
 
   readonly getExpectSymbol: () => Symbol;

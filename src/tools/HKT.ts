@@ -19,7 +19,6 @@ export interface Validator {
     actual: unknown,
     expected: unknown,
     isNegated: boolean,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ) => boolean | string | ToAnalyze<any>;
 }
 /**
@@ -67,7 +66,7 @@ export interface Serializer<T> {
 /**
  * Get the type passed to a {@linkcode Serializer}.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export type Type<S extends Serializer<any>> =
   S extends { readonly Args: (_: [infer Type extends Parameters<S['signature']>[0]]) => void } ?
     Type

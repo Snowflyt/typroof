@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { beFalse, beTrue, describe, equal, expect, it } from 'typroof';
 
 import type { Not } from './not';

@@ -5,6 +5,7 @@ import type { extend } from './extend';
 
 /**
  * [Matcher] Like {@link extend}, but fails if either type is `never` or `any`.
+ * @returns
  *
  * @example
  * ```typescript

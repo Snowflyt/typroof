@@ -1,14 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import esbuild from 'esbuild';
+import * as esbuild from 'esbuild';
 import { getTsconfig } from 'get-tsconfig';
 
-import { registerAnalyzer } from './assertions/matcher';
-import { omit } from './utils/object';
-
 import type { ValidatorRegistry } from './assertions/assert';
+import { registerAnalyzer } from './assertions/matcher';
 import type { Config } from './config';
+import { omit } from './utils/object';
 
 const CONFIG_BASE_NAME = 'typroof.config';
 const SUPPORTED_EXTENSIONS = ['.ts', '.mts', '.cts', '.js', '.mjs', '.cjs'];
@@ -29,13 +28,11 @@ export const loadConfig = async ({
       let config: Config;
       if (ext === '.ts' || ext === '.mts' || ext === '.cts')
         config = await compileConfig({ configPath, tsConfig });
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       else if (ext === '.mjs') config = (await import(configPath)).default;
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       else if (ext === '.cjs') config = require(configPath);
       else
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           config = (await import(configPath)).default;
         } catch (e) {
           // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -44,6 +41,7 @@ export const loadConfig = async ({
 
       if (config.plugins) {
         for (const plugin of config.plugins) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (plugin.analyzers)
             for (const [key, analyzer] of Object.entries(plugin.analyzers))
               registerAnalyzer(key as keyof ValidatorRegistry, analyzer);
@@ -76,19 +74,17 @@ export const compileConfig = async ({
   });
 
   const { outputFiles } = result;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (outputFiles && outputFiles.length > 0) {
     const code = outputFiles[0]!.text;
     const encodedCode = encodeURIComponent(code);
     const moduleUrl = `data:text/javascript;charset=utf-8,${encodedCode}`;
     const ext = path.extname(configPath);
-    if (ext === '.mts')
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      return (await import(moduleUrl)).default;
+    if (ext === '.mts') return (await import(moduleUrl)).default;
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     else if (ext === '.cts') return require(moduleUrl);
     else
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         return (await import(moduleUrl)).default;
       } catch (e) {
         // eslint-disable-next-line @typescript-eslint/no-require-imports

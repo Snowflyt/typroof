@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable sonarjs/no-duplicate-string */
-
 import { beFalse, beTrue, describe, expect, it } from 'typroof';
 
 import type { IsNull, IsNullish, IsUndefined } from './nullish';

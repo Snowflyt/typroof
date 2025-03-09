@@ -5,6 +5,7 @@ import type { cover } from './cover';
 
 /**
  * [Matcher] Like {@link cover}, but fails if either type is `never` or `any`.
+ * @returns
  *
  * @example
  * ```typescript

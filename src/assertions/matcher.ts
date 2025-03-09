@@ -1,6 +1,8 @@
-import type { ValidatorRegistry } from './assert';
+import type { CallExpression, Diagnostic, Node, SourceFile, Type } from 'ts-morph';
+
 import type { TyproofProject } from '../runtime';
-import type { CallExpression, Diagnostic, Node, SourceFile, Type, ts } from 'ts-morph';
+
+import type { ValidatorRegistry } from './assert';
 
 export interface ToAnalyze<T = never> {
   'typroof/ToAnalyze': T;
@@ -35,19 +37,19 @@ interface Actual {
    * The calculated type. For example, if `expect<Capitalize<'foo'>>()`,
    * then `type` is `Type<ts.Type>` of `'Foo'`.
    */
-  readonly type: Type<ts.Type>;
+  readonly type: Type;
   /**
    * The node of the type. For example, if `expect<Capitalize<'foo'>>()`,
    * then `node` is `Node<ts.Node>` of `'Capitalize<'foo'>'`.
    */
-  readonly node: Node<ts.Node>;
+  readonly node: Node;
 }
 
 export interface AnalyzerMeta {
   /**
    * The return type of the validator.
    */
-  validationResult?: Type<ts.Type>;
+  validationResult?: Type;
 
   /**
    * The typroof project.
@@ -60,7 +62,7 @@ export interface AnalyzerMeta {
   /**
    * Pre emit diagnostics of the source file.
    */
-  diagnostics: readonly Diagnostic<ts.Diagnostic>[];
+  diagnostics: readonly Diagnostic[];
   /**
    * Whether `expect` is called with `expect.not`.
    */
@@ -68,7 +70,7 @@ export interface AnalyzerMeta {
   /**
    * The statement of the assertion.
    */
-  statement: CallExpression<ts.CallExpression>;
+  statement: CallExpression;
 }
 
 /**
@@ -83,7 +85,7 @@ export type Analyzer = (
    * The type argument passed to the matcher. For example, if the method is
    * `expect<T>().to(equal<U>)`, then `type` is `U`.
    */
-  expectedType: Type<ts.Type>,
+  expectedType: Type,
   /**
    * Meta data of the analyzer function.
    */

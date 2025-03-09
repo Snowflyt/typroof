@@ -1,22 +1,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { registerToBeAny } from './impl/beAny';
-import { registerToBeFalse } from './impl/beFalse';
-import { registerToBeNever } from './impl/beNever';
-import { registerToBeNull } from './impl/beNull';
-import { registerToBeNullish } from './impl/beNullish';
-import { registerToBeTrue } from './impl/beTrue';
-import { registerToBeUndefined } from './impl/beUndefined';
-import { registerToCover } from './impl/cover';
-import { registerToEqual } from './impl/equal';
-import { registerToError } from './impl/error';
-import { registerToExtend } from './impl/extend';
-import { registerToMatchBoolean } from './impl/matchBoolean';
-import { registerToStrictCover } from './impl/strictCover';
-import { registerToStrictExtend } from './impl/strictExtend';
+import type { Project } from 'ts-morph';
 
-import type { Match, ToAnalyze } from './matcher';
 import type {
   Covers,
   Equals,
@@ -34,7 +20,22 @@ import type {
   Stringify,
 } from '../tools';
 import type { Actual, Expected, IsNegated, Validator } from '../tools/HKT';
-import type { Project } from 'ts-morph';
+
+import { registerToBeAny } from './impl/beAny';
+import { registerToBeFalse } from './impl/beFalse';
+import { registerToBeNever } from './impl/beNever';
+import { registerToBeNull } from './impl/beNull';
+import { registerToBeNullish } from './impl/beNullish';
+import { registerToBeTrue } from './impl/beTrue';
+import { registerToBeUndefined } from './impl/beUndefined';
+import { registerToCover } from './impl/cover';
+import { registerToEqual } from './impl/equal';
+import { registerToError } from './impl/error';
+import { registerToExtend } from './impl/extend';
+import { registerToMatchBoolean } from './impl/matchBoolean';
+import { registerToStrictCover } from './impl/strictCover';
+import { registerToStrictExtend } from './impl/strictExtend';
+import type { Match, ToAnalyze } from './matcher';
 
 /**
  * Register all built-in analyzers.
@@ -264,6 +265,7 @@ export interface Expect<T> {
 
 /**
  * Expect a type to satisfy a set of assertions.
+ * @returns
  *
  * @example
  * ```typescript

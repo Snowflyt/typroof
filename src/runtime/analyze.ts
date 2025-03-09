@@ -1,37 +1,36 @@
 import path from 'node:path';
 
+import type { CallExpression, Diagnostic, Node, SourceFile, Type } from 'ts-morph';
 import { ts } from 'ts-morph';
 
 import { AnalyzingError } from '../errors';
 import { dim } from '../utils/colors';
 
-import { isCallOfSymbol, isCallOfSymbols } from './ts';
-
 import type { TyproofProject } from './project';
-import type { CallExpression, Diagnostic, Node, SourceFile, Type } from 'ts-morph';
+import { isCallOfSymbol, isCallOfSymbols } from './ts';
 
 export interface Group {
   description: string;
-  children: Array<Group | Test>;
+  children: (Group | Test)[];
 }
 export interface Test {
   description: string;
   assertions: Assertion[];
 }
 export interface Assertion {
-  statement: CallExpression<ts.CallExpression>;
-  actualNode: Node<ts.Node>;
-  matcherNode: Node<ts.Node>;
+  statement: CallExpression;
+  actualNode: Node;
+  matcherNode: Node;
   matcherName: string;
   not: boolean;
-  expectedType: Type<ts.Type>;
-  passedOrValidationResult: boolean | Type<ts.Type>;
+  expectedType: Type;
+  passedOrValidationResult: boolean | Type;
 }
 
 export interface AnalyzeResult {
   project: TyproofProject;
   sourceFile: SourceFile;
-  diagnostics: readonly Diagnostic<ts.Diagnostic>[];
+  diagnostics: readonly Diagnostic[];
   rootGroup: Group;
 }
 
@@ -68,8 +67,8 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
     (a, b) => a.getStart() - b.getStart(),
   );
 
-  const extractAssertions = (group: Group, calls: readonly CallExpression<ts.CallExpression>[]) => {
-    const getChildDescribeOrTestCalls = (describe: CallExpression<ts.CallExpression>) =>
+  const extractAssertions = (group: Group, calls: readonly CallExpression[]) => {
+    const getChildDescribeOrTestCalls = (describe: CallExpression) =>
       describe
         .getDescendantsOfKind(ts.SyntaxKind.CallExpression)
         .filter(
@@ -79,7 +78,7 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
               call.getAncestors().find(isCallOfSymbol(describeSymbol)) === describe),
         );
 
-    const getDescribeOrTestCallDescription = (call: CallExpression<ts.CallExpression>) =>
+    const getDescribeOrTestCallDescription = (call: CallExpression) =>
       call.getArguments()[0]!.getText().trim().replace(/^['"]/, '').replace(/['"]$/, '');
 
     for (const call of calls) {

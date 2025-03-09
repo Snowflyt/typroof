@@ -12,6 +12,7 @@ import type { strictExtend } from './strictExtend';
  * The exception is `never`, which is not assignable to any type (thus `expect<any>().to(extend<never>)` fails).
  * Keep this in mind, as it may lead to unexpected results when working with `any` or `never`.
  * Use {@link strictExtend} for a stricter version that fails if either the type or the given type is `never` or `any`.
+ * @returns
  *
  * @example
  * ```typescript

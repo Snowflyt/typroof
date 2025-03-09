@@ -33,5 +33,5 @@
       "typroof": ["src"]
     }
   },
-  "include": ["typroof.config.ts", "src", "test"]
+  "include": ["src", "test"]
 }

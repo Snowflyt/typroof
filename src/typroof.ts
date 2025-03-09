@@ -1,11 +1,10 @@
 import path from 'node:path';
 
 import { registerBuiltinAnalyzers } from './assertions/assert';
-import { loadConfig } from './config-helpers';
-import { createTyproofProject } from './runtime';
-
 import type { Config } from './config';
+import { loadConfig } from './config-helpers';
 import type { CheckResult } from './runtime';
+import { createTyproofProject } from './runtime';
 
 /**
  * Check all type test files in the current working directory.

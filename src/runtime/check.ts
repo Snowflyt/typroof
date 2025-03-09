@@ -1,3 +1,4 @@
+import type { SourceFile } from 'ts-morph';
 import { ts } from 'ts-morph';
 
 import { analyzers } from '../assertions/matcher';
@@ -5,11 +6,10 @@ import { MatchingError } from '../errors';
 
 import type { AnalyzeResult, Assertion, Group, Test } from './analyze';
 import type { TyproofProject } from './project';
-import type { SourceFile } from 'ts-morph';
 
 export interface GroupResult {
   description: string;
-  children: Array<GroupResult | TestResult>;
+  children: (GroupResult | TestResult)[];
 }
 export interface TestResult {
   description: string;
@@ -42,7 +42,7 @@ export const checkAnalyzeResult = ({
 }: AnalyzeResult): CheckResult => {
   const result: GroupResult = { description: rootGroup.description, children: [] };
 
-  const checkAssertions = (group: GroupResult, children: ReadonlyArray<Group | Test>) => {
+  const checkAssertions = (group: GroupResult, children: readonly (Group | Test)[]) => {
     const isGroup = (child: Group | Test): child is Group => 'children' in child;
 
     for (const child of children) {

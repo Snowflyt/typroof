@@ -3,6 +3,7 @@ import { match, registerAnalyzer } from '../matcher';
 
 /**
  * [Matcher] Expect a type to be equal to the given type.
+ * @returns
  *
  * @example
  * ```typescript

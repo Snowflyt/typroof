@@ -18,7 +18,9 @@ export const test: (name: string, fn: () => void | Promise<void>) => void = () =
  *
  * @see {@link test}
  */
-export const it = (name: string, fn: () => void | Promise<void>) => test(name, fn);
+export const it = (name: string, fn: () => void | Promise<void>) => {
+  test(name, fn);
+};
 
 const currentFilePathName = (() => {
   let result = '';

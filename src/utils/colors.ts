@@ -5,6 +5,7 @@
 
 import tty from 'node:tty';
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 const hasColors = tty?.WriteStream?.prototype?.hasColors?.() ?? false;
 
 const format = (open: number, close: number): ((input: string) => string) => {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
 
 import type { Serializer, Type } from './HKT';
@@ -122,16 +121,16 @@ export interface StringifySerializerRegistry {
     serializer: 'AsyncGeneratorFunction';
   };
   AsyncGenerator: {
-    if: ['extends', AsyncGenerator<any, any, any>];
+    if: ['extends', AsyncGenerator<any>];
     serializer: AsyncGeneratorSerializer;
   };
   GeneratorFunction: { if: ['equals', GeneratorFunction]; serializer: 'GeneratorFunction' };
-  Generator: { if: ['extends', Generator<any, any, any>]; serializer: GeneratorSerializer };
+  Generator: { if: ['extends', Generator<any>]; serializer: GeneratorSerializer };
   AsyncIterator: {
-    if: ['extends', AsyncIterator<any, any, any>];
+    if: ['extends', AsyncIterator<any>];
     serializer: AsyncIteratorSerializer;
   };
-  Iterator: { if: ['extends', Iterator<any, any, any>]; serializer: IteratorSerializer };
+  Iterator: { if: ['extends', Iterator<any>]; serializer: IteratorSerializer };
 
   /* Structured data */
   JSON: { if: ['equals', JSON]; serializer: 'JSON' };
@@ -180,22 +179,22 @@ export interface StringifySerializerRegistry {
 
 /* Built-in serializers */
 
-interface IteratorSerializer extends Serializer<Iterator<any, any, any>> {
+interface IteratorSerializer extends Serializer<Iterator<any>> {
   return: Type<this> extends Iterator<infer T, infer TReturn, infer TNext> ?
     `Iterator<${Stringify<T>}, ${Stringify<TReturn>}, ${Stringify<TNext>}>`
   : never;
 }
-interface AsyncIteratorSerializer extends Serializer<AsyncIterator<any, any, any>> {
+interface AsyncIteratorSerializer extends Serializer<AsyncIterator<any>> {
   return: Type<this> extends AsyncIterator<infer T, infer TReturn, infer TNext> ?
     `AsyncIterator<${Stringify<T>}, ${Stringify<TReturn>}, ${Stringify<TNext>}>`
   : never;
 }
-interface GeneratorSerializer extends Serializer<Generator<any, any, any>> {
+interface GeneratorSerializer extends Serializer<Generator<any>> {
   return: Type<this> extends Generator<infer T, infer TReturn, infer TNext> ?
     `Generator<${Stringify<T>}, ${Stringify<TReturn>}, ${Stringify<TNext>}>`
   : never;
 }
-interface AsyncGeneratorSerializer extends Serializer<AsyncGenerator<any, any, any>> {
+interface AsyncGeneratorSerializer extends Serializer<AsyncGenerator<any>> {
   return: Type<this> extends AsyncGenerator<infer T, infer TReturn, infer TNext> ?
     `AsyncGenerator<${Stringify<T>}, ${Stringify<TReturn>}, ${Stringify<TNext>}>`
   : never;
@@ -217,47 +216,47 @@ interface WeakSetSerializer extends Serializer<WeakSet<any>> {
 }
 
 interface Int8ArraySerializer extends Serializer<Int8Array> {
-  return: Type<this> extends Int8Array<ArrayBufferLike> ? 'Int8Array'
+  return: Type<this> extends Int8Array ? 'Int8Array'
   : Type<this> extends Int8Array<infer B> ? `Int8Array<${Stringify<B>}>`
   : never;
 }
 interface Uint8ArraySerializer extends Serializer<Uint8Array> {
-  return: Type<this> extends Uint8Array<ArrayBufferLike> ? 'Uint8Array'
+  return: Type<this> extends Uint8Array ? 'Uint8Array'
   : Type<this> extends Uint8Array<infer B> ? `Uint8Array<${Stringify<B>}>`
   : never;
 }
 interface Uint8ClampedArraySerializer extends Serializer<Uint8ClampedArray> {
-  return: Type<this> extends Uint8ClampedArray<ArrayBufferLike> ? 'Uint8ClampedArray'
+  return: Type<this> extends Uint8ClampedArray ? 'Uint8ClampedArray'
   : Type<this> extends Uint8ClampedArray<infer B> ? `Uint8ClampedArray<${Stringify<B>}>`
   : never;
 }
 interface Int16ArraySerializer extends Serializer<Int16Array> {
-  return: Type<this> extends Int16Array<ArrayBufferLike> ? 'Int16Array'
+  return: Type<this> extends Int16Array ? 'Int16Array'
   : Type<this> extends Int16Array<infer B> ? `Int16Array<${Stringify<B>}>`
   : never;
 }
 interface Uint16ArraySerializer extends Serializer<Uint16Array> {
-  return: Type<this> extends Uint16Array<ArrayBufferLike> ? 'Uint16Array'
+  return: Type<this> extends Uint16Array ? 'Uint16Array'
   : Type<this> extends Uint16Array<infer B> ? `Uint16Array<${Stringify<B>}>`
   : never;
 }
 interface Int32ArraySerializer extends Serializer<Int32Array> {
-  return: Type<this> extends Int32Array<ArrayBufferLike> ? 'Int32Array'
+  return: Type<this> extends Int32Array ? 'Int32Array'
   : Type<this> extends Int32Array<infer B> ? `Int32Array<${Stringify<B>}>`
   : never;
 }
 interface Uint32ArraySerializer extends Serializer<Uint32Array> {
-  return: Type<this> extends Uint32Array<ArrayBufferLike> ? 'Uint32Array'
+  return: Type<this> extends Uint32Array ? 'Uint32Array'
   : Type<this> extends Uint32Array<infer B> ? `Uint32Array<${Stringify<B>}>`
   : never;
 }
 interface Float32ArraySerializer extends Serializer<Float32Array> {
-  return: Type<this> extends Float32Array<ArrayBufferLike> ? 'Float32Array'
+  return: Type<this> extends Float32Array ? 'Float32Array'
   : Type<this> extends Float32Array<infer B> ? `Float32Array<${Stringify<B>}>`
   : never;
 }
 interface Float64ArraySerializer extends Serializer<Float64Array> {
-  return: Type<this> extends Float64Array<ArrayBufferLike> ? 'Float64Array'
+  return: Type<this> extends Float64Array ? 'Float64Array'
   : Type<this> extends Float64Array<infer B> ? `Float64Array<${Stringify<B>}>`
   : never;
 }
