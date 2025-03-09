@@ -40,7 +40,8 @@
     "test:ui": "vitest --ui --coverage.enabled=true",
     "test:watch": "vitest",
     "test:watch-cov": "vitest --coverage",
-    "test-types": "tsx src/cli.ts"
+    "test-types": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "esbuild": "^0.24.2",
