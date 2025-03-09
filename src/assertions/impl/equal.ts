@@ -14,10 +14,7 @@ import { match, registerAnalyzer } from '../matcher';
  * expect<'foo'>().to(equal<'foo' | 'bar'>); // fail
  * ```
  */
-export const equal = <U>(
-  // @ts-expect-error - `y` is used only for type inference
-  y?: U,
-) => match<'equal', U>();
+export const equal = <U>(y?: U) => match<'equal', U>();
 
 export const registerToEqual = () => {
   registerAnalyzer('equal', (actual, expected, { not }) => {

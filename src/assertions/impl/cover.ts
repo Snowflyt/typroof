@@ -26,11 +26,7 @@ import type { strictCover } from './strictCover';
  * expect<any>().to(cover<'foo'>); // pass
  * ```
  */
-export const cover = <U>(
-  // @ts-expect-error - `y` is used only for type inference
-
-  y?: U,
-) => match<'cover', U>();
+export const cover = <U>(y?: U) => match<'cover', U>();
 
 export const registerToCover = () => {
   registerAnalyzer('cover', (actual, expected, { not }) => {

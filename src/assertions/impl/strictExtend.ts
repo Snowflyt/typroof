@@ -19,10 +19,7 @@ import type { extend } from './extend';
  * expect<'foo'>().to(strictExtend<any>); // fail
  * ```
  */
-export const strictExtend = <U>(
-  // @ts-expect-error - `y` is used only for type inference
-  y?: U,
-) => match<'strictExtend', U>();
+export const strictExtend = <U>(y?: U) => match<'strictExtend', U>();
 
 export const registerToStrictExtend = () => {
   registerAnalyzer('strictExtend', (actual, expected, { not }) => {
