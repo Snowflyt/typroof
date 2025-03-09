@@ -76,7 +76,9 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
             isCallOfSymbols([testSymbol, itSymbol])(call) ||
             (isCallOfSymbol(describeSymbol)(call) &&
               call.getAncestors().find(isCallOfSymbol(describeSymbol)) === describe),
-        );
+        )
+        // Filter out calls that direct ancestor is not this `describe` block (#1)
+        .filter((call) => call.getAncestors().find(isCallOfSymbol(describeSymbol)) === describe);
 
     const getDescribeOrTestCallDescription = (call: CallExpression) =>
       call.getArguments()[0]!.getText().trim().replace(/^['"]/, '').replace(/['"]$/, '');

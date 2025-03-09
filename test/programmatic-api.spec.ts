@@ -28,12 +28,16 @@ describe('Programmatic API', async () => {
     const formattedResults = results.map((r) => formatGroupResult(r.rootGroupResult)).join('\n');
     expect(cleanAnsi(formattedResults)).toEqual(
       trimIndent(`
-        ❯ test/programmatic-api-test-proof.ts (3)
+        ❯ test/programmatic-api-test-proof.ts (5)
           ✔ Append
           ❯ Prepend (2)
             ✘ should prepend a string to another
               × 21:12 Expect Prepend<'foo', 'bar'> to equal "foobar", but got "barfoo".
             ✔ should accept only strings
+          ✔ describe01 (2)
+            ✔ it01
+            ✔ describe02 (1)
+              ✔ it02
       `),
     );
   });
@@ -43,7 +47,7 @@ describe('Programmatic API', async () => {
     expect(trimIndent(cleanAnsi(summary))).toEqual(
       trimIndent(`
         Test Files  1 failed (1)
-             Tests  1 failed | 2 passed (3)
+             Tests  1 failed | 4 passed (5)
       `),
     );
   });

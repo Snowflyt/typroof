@@ -26,3 +26,21 @@ describe('Prepend', () => {
     expect<Prepend<42, 43>>().to(error);
   });
 });
+
+// Test for nested describe blocks
+// See #1: https://github.com/Snowflyt/typroof/issues/1
+describe('describe01', () => {
+  it('it01', () => {
+    type S = 'a';
+    type R = 'a';
+    expect<S>().to(equal<R>);
+  });
+
+  describe('describe02', () => {
+    it('it02', () => {
+      type S = 'a';
+      type R = 'a';
+      expect<S>().to(equal<R>);
+    });
+  });
+});
