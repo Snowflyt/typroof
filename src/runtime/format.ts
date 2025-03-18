@@ -12,10 +12,11 @@ const formatTestResult = (test: TestResult, indent: number): string => {
     if (assertion.pass) continue;
     result +=
       ' '.repeat(indent + 2) +
-      red('×') +
+      red('❯') +
       ' ' +
-      gray(assertion.errorLineNumber + ':' + assertion.errorColumnNumber) +
-      ' ' +
+      `${assertion.filePathname}:${gray(assertion.errorLineNumber + ':' + assertion.errorColumnNumber)}` +
+      '\n' +
+      ' '.repeat(indent + 4) +
       assertion.errorMessage +
       '\n';
   }

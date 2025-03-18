@@ -32,7 +32,8 @@ describe('Programmatic API', async () => {
           ✓ Append
           ❯ Prepend (2)
             × should prepend a string to another
-              × 21:12 Expect Prepend<'foo', 'bar'> to equal "foobar", but got "barfoo".
+              ❯ test/programmatic-api-test-proof.ts:21:12
+                Expect Prepend<'foo', 'bar'> to equal "foobar", but got "barfoo".
             ✓ should accept only strings
           ✓ describe01 (2)
             ✓ it01

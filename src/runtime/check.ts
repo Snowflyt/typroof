@@ -22,6 +22,7 @@ export interface AssertionResultPass {
 export interface AssertionResultFail {
   pass: false;
   assertion: Assertion;
+  filePathname: string;
   errorLineNumber: number;
   errorColumnNumber: number;
   errorMessage: string;
@@ -101,6 +102,7 @@ export const checkAnalyzeResult = ({
               const assertionResult: AssertionResultFail = {
                 pass: false,
                 assertion,
+                filePathname: rootGroup.description,
                 errorLineNumber: actualNode.getStartLineNumber(),
                 errorColumnNumber: actualNode.getStart() - actualNode.getStartLinePos() + 1,
                 errorMessage: error,
