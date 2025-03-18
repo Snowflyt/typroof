@@ -1,7 +1,9 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { Project } from 'ts-morph';
+import type * as ts from 'typescript';
+
+import { getExportedSymbols } from './ts-utils';
 
 /**
  * Group test cases.
@@ -33,13 +35,17 @@ const currentFilePathName = (() => {
     result = path.join(path.dirname(result), path.basename(result, '.js') + '.d.ts');
   return result;
 })();
-export const getTestSymbols = (project: Project) => {
-  const file = project.addSourceFileAtPath(currentFilePathName);
-  const describeSymbol = file.getExportedDeclarations().get('describe')?.[0]?.getSymbol();
-  if (!describeSymbol) throw new Error('Can not find `describe` symbol');
-  const testSymbol = file.getExportedDeclarations().get('test')?.[0]?.getSymbol();
-  if (!testSymbol) throw new Error('Can not find `test` symbol');
-  const itSymbol = file.getExportedDeclarations().get('it')?.[0]?.getSymbol();
-  if (!itSymbol) throw new Error('Can not find `it` symbol');
-  return { describeSymbol, testSymbol, itSymbol };
-};
+
+export const getTestSymbols = ({
+  program,
+  typeChecker,
+}: {
+  program: ts.Program;
+  typeChecker: ts.TypeChecker;
+}) =>
+  getExportedSymbols({
+    program,
+    typeChecker,
+    modulePath: currentFilePathName,
+    symbolNames: ['describe', 'it', 'test'],
+  });

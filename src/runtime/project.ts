@@ -1,7 +1,7 @@
 import path from 'node:path';
 
-import type { Diagnostic, ProjectOptions, SourceFile, Symbol } from 'ts-morph';
-import { Project } from 'ts-morph';
+import { globSync } from 'tinyglobby';
+import * as ts from 'typescript';
 
 import { getExpectSymbol } from '../assertions/assert';
 
@@ -11,22 +11,27 @@ import { checkAnalyzeResult } from './check';
 import { getTestSymbols } from './test';
 
 /**
- * An extension of the ts-morph `Project`.
+ * A Typroof project.
  */
-export interface TyproofProject extends Project {
-  readonly cachedPreEmitDiagnostics: readonly Diagnostic[];
-  readonly testFiles: readonly SourceFile[];
+export interface TyproofProject {
+  // Core TypeScript components
+  readonly program: ts.Program;
+  readonly typeChecker: ts.TypeChecker;
+  readonly testFiles: readonly ts.SourceFile[];
+  readonly diagnostics: readonly ts.Diagnostic[];
 
-  readonly getExpectSymbol: () => Symbol;
-  readonly getDescribeSymbol: () => Symbol;
-  readonly getItSymbol: () => Symbol;
-  readonly getTestSymbol: () => Symbol;
+  // Symbol getters
+  readonly getExpectSymbol: () => ts.Symbol;
+  readonly getDescribeSymbol: () => ts.Symbol;
+  readonly getItSymbol: () => ts.Symbol;
+  readonly getTestSymbol: () => ts.Symbol;
 
-  readonly checkTestFile: (file: SourceFile) => CheckResult;
+  // Testing functionality
+  readonly checkTestFile: (file: ts.SourceFile) => CheckResult;
 }
 
 /**
- * Options for creating a typroof project, which is an extension of the ts-morph `Project`.
+ * Options for creating a Typroof project.
  */
 export interface TyproofProjectOptions {
   /**
@@ -42,15 +47,15 @@ export interface TyproofProjectOptions {
   /* eslint-enable no-irregular-whitespace */
   testFiles?: string | readonly string[];
   /**
-   * Options to pass to the ts-morph project.
+   * Additional compiler options to override those in tsconfig.json.
    */
-  projectOptions?: Omit<ProjectOptions, 'tsConfigFilePath' | 'skipAddingFilesFromTsConfig'>;
+  compilerOptions?: ts.CompilerOptions;
 }
 
 /**
- * Create a typroof project, which is an extension of the ts-morph `Project`.
- * @param options Options for creating a typroof project.
- * @returns A typroof project.
+ * Create a Typroof project for running type tests.
+ * @param options Options for creating a Typroof project.
+ * @returns A Typroof project.
  *
  * @example
  * ```typescript
@@ -73,41 +78,61 @@ export interface TyproofProjectOptions {
  */
 export function createTyproofProject(options?: TyproofProjectOptions): TyproofProject {
   const {
-    projectOptions,
-    testFiles: testFileGlobs,
-    tsConfigFilePath,
-  } = {
-    tsConfigFilePath: path.join(process.cwd(), 'tsconfig.json'),
-    testFiles: ['**/*.proof.{ts,tsx}', 'proof/**/*.{ts,tsx}'],
-    projectOptions: {},
-    ...options,
-  };
+    compilerOptions = {},
+    testFiles: testFileGlobs = ['**/*.proof.{ts,tsx}', 'proof/**/*.{ts,tsx}'],
+    tsConfigFilePath = path.join(process.cwd(), 'tsconfig.json'),
+  } = options || {};
 
-  const project = new Project({
-    tsConfigFilePath,
-    skipAddingFilesFromTsConfig: true,
-    ...projectOptions,
-  });
-  const testFiles = project.addSourceFilesAtPaths(
-    typeof testFileGlobs === 'string' ?
-      ['!**/node_modules/**/*.*', testFileGlobs]
-    : ['!**/node_modules/**/*.*', ...testFileGlobs],
+  // Parse tsconfig.json
+  const configFile = ts.readConfigFile(tsConfigFilePath, (path) => ts.sys.readFile(path));
+  if (configFile.error)
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+    throw new Error(`Error reading tsconfig.json: ${String(configFile.error.messageText)}`);
+
+  const parsedConfig = ts.parseJsonConfigFileContent(
+    configFile.config,
+    ts.sys,
+    path.dirname(tsConfigFilePath),
+    compilerOptions,
   );
 
-  const expectSymbol = getExpectSymbol(project);
-  const { describeSymbol, itSymbol, testSymbol } = getTestSymbols(project);
+  // Find test files
+  const testFilePatterns = Array.isArray(testFileGlobs) ? testFileGlobs : [testFileGlobs];
+  const testFilePaths = testFilePatterns.flatMap((pattern) =>
+    globSync(pattern, { ignore: 'node_modules/**' }),
+  );
 
-  const result = Object.assign(project, {
-    cachedPreEmitDiagnostics: project.getPreEmitDiagnostics(),
+  // Create program
+  const program = ts.createProgram(testFilePaths, parsedConfig.options);
+
+  const typeChecker = program.getTypeChecker();
+  const diagnostics = ts.getPreEmitDiagnostics(program);
+  const testFiles = program
+    .getSourceFiles()
+    .filter((file) => testFilePaths.includes(file.fileName));
+
+  // Get symbols
+  const expectSymbol = getExpectSymbol({ program, typeChecker });
+  const {
+    describe: describeSymbol,
+    it: itSymbol,
+    test: testSymbol,
+  } = getTestSymbols({ program, typeChecker });
+
+  const project: TyproofProject = {
+    program,
+    typeChecker,
     testFiles,
+    diagnostics,
 
     getExpectSymbol: () => expectSymbol,
     getDescribeSymbol: () => describeSymbol,
     getItSymbol: () => itSymbol,
     getTestSymbol: () => testSymbol,
 
-    checkTestFile: (file: SourceFile): CheckResult =>
-      checkAnalyzeResult(analyzeTestFile(result as TyproofProject, file)),
-  }) satisfies TyproofProject;
-  return result;
+    checkTestFile: (file: ts.SourceFile): CheckResult =>
+      checkAnalyzeResult(analyzeTestFile(project, file)),
+  };
+
+  return project;
 }

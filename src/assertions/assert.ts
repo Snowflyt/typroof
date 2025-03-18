@@ -1,8 +1,9 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { Project } from 'ts-morph';
+import type * as ts from 'typescript';
 
+import { getExportedSymbols } from '../runtime/ts-utils';
 import type {
   Covers,
   Equals,
@@ -295,9 +296,17 @@ const currentFilePathName = (() => {
     result = path.join(path.dirname(result), path.basename(result, '.js') + '.d.ts');
   return result;
 })();
-export const getExpectSymbol = (project: Project) => {
-  const file = project.addSourceFileAtPath(currentFilePathName);
-  const symbol = file.getExportedDeclarations().get('expect')?.[0]?.getSymbol();
-  if (!symbol) throw new Error('Cannot find `expect` symbol');
-  return symbol;
-};
+
+export const getExpectSymbol = ({
+  program,
+  typeChecker,
+}: {
+  program: ts.Program;
+  typeChecker: ts.TypeChecker;
+}) =>
+  getExportedSymbols({
+    program,
+    typeChecker,
+    modulePath: currentFilePathName,
+    symbolNames: ['expect'],
+  }).expect;

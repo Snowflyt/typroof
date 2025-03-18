@@ -15,11 +15,11 @@ import { match, registerAnalyzer } from '../matcher';
 export const beNullish = match<'beNullish'>();
 
 export const registerToBeNullish = () => {
-  registerAnalyzer('beNullish', (actual, _expected, { not }) => {
+  registerAnalyzer('beNullish', (actual, _expected, { not, typeChecker }) => {
     const actualText = bold(actual.text);
     const expectedType =
       bold('null') + ', ' + bold('undefined') + ' or ' + bold('null | undefined');
-    const actualType = bold(actual.type.getText());
+    const actualType = bold(typeChecker.typeToString(actual.type));
 
     throw `Expect ${actualText} ${not ? 'not ' : ''}to be ${expectedType}, but got ${actualType}.`;
   });

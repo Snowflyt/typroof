@@ -212,7 +212,7 @@ console.log(
 
 Typroof supports plugins to extend its matchers.
 
-Matchers are just indicators to tell Typroof how to assert the type. The process actually involves two steps: The type level validation and the code analysis using [ts-morph](https://github.com/dsherret/ts-morph).
+Matchers are just indicators to tell Typroof how to assert the type. The process actually involves two steps: The type level validation and the code analysis using TypeScript compiler API.
 
 Take a look at how the `equal` matcher is implemented:
 
@@ -264,16 +264,16 @@ export const registerToEqual = () => {
   // Here, since `equal` is a type-level only matcher, so the analyzer is only used to
   // report the error message, and `validationResult` is not used, but it can be useful
   // if you are implementing a matcher like `haveJSDoc` that needs to analyze the type
-  // using ts-morph.
-  registerAnalyzer('equal', (actual, expected, { not, validationResult }) => {
+  // using TypeScript compiler API.
+  registerAnalyzer('equal', (actual, expected, { not, typeChecker, validationResult }) => {
     // Here `equal` is a type-level only assertion, so we just need to report the error.
     // But you can do anything you want here, e.g., `error` checks if the type emits an
     // error. The fourth argument provides necessary metadata for you to achieve almost
-    // anything you can via ts-morph.
+    // anything you can via TypeScript compiler API.
 
-    const actualText = chalk.bold(actual.text);
-    const expectedType = chalk.bold(expected.getText());
-    const actualType = chalk.bold(actual.type.getText());
+    const actualText = `\x1b[1m${actual.text}\x1b[22m`; // Bold the text with ANSI escape codes
+    const expectedType = `\x1b[1m${typeChecker.typeToString(expected)}\x1b[22m`;
+    const actualType = `\x1b[1m{typeChecker.typeToString(actual.type)}\x1b[22m`;
 
     // Throw a string to report the error.
     throw (
@@ -339,31 +339,95 @@ interface ErrorValidator {
 }
 
 export const registerToError = () => {
-  registerAnalyzer('error', (actual, _expected, { diagnostics, not, statement }) => {
+  registerAnalyzer('error', (actual, _expected, { diagnostics, not, sourceFile, statement }) => {
+    // Check if a diagnostic error exists for this node
     const diagnostic = diagnostics.find((diagnostic) => {
-      const start = diagnostic.getStart();
-      if (!start) return false;
-      const length = diagnostic.getLength();
-      if (!length) return false;
+      const start = diagnostic.start;
+      if (start === undefined) return false;
+
+      const length = diagnostic.length;
+      if (length === undefined) return false;
+
       const end = start + length;
-      return start >= actual.node.getStart() && end <= actual.node.getEnd();
+      const nodeStart = actual.node.getStart(sourceFile);
+      const nodeEnd = actual.node.getEnd();
+
+      return start >= nodeStart && end <= nodeEnd;
     });
 
-    const triggeredError =
-      !!diagnostic ||
-      // Check if the error is suppressed by `@ts-expect-error`
-      statement.getLeadingCommentRanges().some(
-        (range) =>
-          range
-            .getText()
-            .replace(/^\/\*+\s*/, '')
-            .replace(/^\/\/\s*/, '')
-            .startsWith('@ts-expect-error') &&
-          !diagnostics.find((diagnostic) => diagnostic.getStart() === range.getPos()),
-      );
+    // Find @ts-expect-error comments that apply to this expression
+    const findTSExpectError = () => {
+      const sourceText = sourceFile.text;
+
+      // 1. Check for leading comments directly before the statement
+      const leadingComments =
+        ts.getLeadingCommentRanges(sourceText, statement.getFullStart()) || [];
+
+      // 2. Find any internal comments within the statement’s full text range
+      // This helps with multi-line expressions that have inline comments
+      const statementStart = statement.getFullStart();
+      const statementEnd = statement.getEnd();
+      const statementText = sourceText.substring(statementStart, statementEnd);
+
+      // Track all potential comment positions
+      const commentPositions: { start: number; end: number }[] = [
+        ...leadingComments.map((c) => ({ start: c.pos, end: c.end })),
+      ];
+
+      // Scan the statement for possible comment starts
+      let pos = 0;
+      while (pos < statementText.length) {
+        // Look for // comments
+        if (statementText.substring(pos, pos + 2) === '//') {
+          const startPos = statementStart + pos;
+          let endPos = statementText.indexOf('\n', pos);
+          if (endPos === -1) endPos = statementText.length;
+          commentPositions.push({
+            start: startPos,
+            end: statementStart + endPos,
+          });
+          pos = endPos + 1;
+          continue;
+        }
+
+        // Look for /* */ comments
+        if (statementText.substring(pos, pos + 2) === '/*') {
+          const startPos = statementStart + pos;
+          const endPos = statementText.indexOf('*/', pos);
+          if (endPos !== -1) {
+            commentPositions.push({
+              start: startPos,
+              end: statementStart + endPos + 2,
+            });
+            pos = endPos + 2;
+            continue;
+          }
+        }
+
+        pos++;
+      }
+
+      // Check all comment positions for @ts-expect-error
+      for (const { end, start } of commentPositions) {
+        const commentText = sourceText.substring(start, end);
+        if (commentText.includes('@ts-expect-error')) {
+          // Ensure this @ts-expect-error is not already used by checking
+          // if there’s a diagnostic that starts at this exact position
+          const isUnused = !diagnostics.some(
+            (d) => d.start === start && d.code === 2578, // TypeScript’s code for @ts-expect-error
+          );
+          if (isUnused) return true;
+        }
+      }
+
+      return false;
+    };
+
+    // Check if error is triggered either by diagnostic or @ts-expect-error
+    const triggeredError = !!diagnostic || findTSExpectError();
 
     if (not ? triggeredError : !triggeredError) {
-      const actualText = chalk.bold(actual.text);
+      const actualText = bold(actual.text);
       throw (
         `Expect ${actualText} ${not ? 'not ' : ''}to trigger error, ` +
         `but ${not ? 'did' : 'did not'}.`
@@ -393,7 +457,6 @@ interface BeFooValidator extends Validator {
 }
 
 // In your `typroof.config.ts`
-import chalk from 'chalk';
 import { defineConfig } from 'typroof/config';
 
 import type { Plugin } from 'typroof/plugin';
@@ -404,10 +467,10 @@ const foo = (): Plugin => ({
   name: 'typroof-plugin-example',
   analyzers: {
     // Just like what you have seen in `registerAnalyzer`
-    beFoo: (actual, _expected, { not }) => {
-      const actualText = chalk.bold(actual.text);
-      const expectedType = chalk.bold('"foo"');
-      const actualType = chalk.bold(actual.type.getText());
+    beFoo: (actual, _expected, { not, typeChecker }) => {
+      const actualText = `\x1b[1m${actual.text}\x1b[22m`; // Bold the text with ANSI escape codes
+      const expectedType = `\x1b[1m"foo"\x1b[22m`;
+      const actualType = `\x1b[1m{typeChecker.typeToString(actual.type)}\x1b[22m`;
 
       throw (
         `Expect ${actualText} ${not ? 'not ' : ''}to be ${expectedType}, ` +
@@ -421,8 +484,6 @@ export default defineConfig({
   plugins: [foo()],
 });
 ```
-
-**⚠ Warning:** Don’t forget to add `chalk` to your `devDependencies` (or `dependencies` if you’re developing a plugin) in `package.json` to avoid circular dependencies error when Typroof is loading config.
 
 > [!TIP]
 >

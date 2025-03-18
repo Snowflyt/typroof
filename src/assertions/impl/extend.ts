@@ -29,10 +29,10 @@ import type { strictExtend } from './strictExtend';
 export const extend = <U>(y?: U) => match<'extend', U>();
 
 export const registerToExtend = () => {
-  registerAnalyzer('extend', (actual, expected, { not }) => {
+  registerAnalyzer('extend', (actual, expected, { not, typeChecker }) => {
     const actualText = bold(actual.text);
-    const expectedType = bold(expected.getText());
-    const actualType = bold(actual.type.getText());
+    const expectedType = bold(typeChecker.typeToString(expected));
+    const actualType = bold(typeChecker.typeToString(actual.type));
 
     throw (
       `Expect ${actualText} (${actualType}) ${not ? 'not ' : ''}to extend ${expectedType}, ` +

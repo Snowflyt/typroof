@@ -47,7 +47,7 @@
     "esbuild": "^0.25.1",
     "get-tsconfig": "^4.10.0",
     "meow": "^13.2.0",
-    "ts-morph": "^25.0.1"
+    "tinyglobby": "^0.2.12"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",

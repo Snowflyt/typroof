@@ -14,10 +14,10 @@ import { match, registerAnalyzer } from '../matcher';
 export const beNever = match<'beNever'>();
 
 export const registerToBeNever = () => {
-  registerAnalyzer('beNever', (actual, _expected, { not }) => {
+  registerAnalyzer('beNever', (actual, _expected, { not, typeChecker }) => {
     const actualText = bold(actual.text);
     const expectedType = bold('never');
-    const actualType = bold(actual.type.getText());
+    const actualType = bold(typeChecker.typeToString(actual.type));
 
     throw `Expect ${actualText} ${not ? 'not ' : ''}to be ${expectedType}, but got ${actualType}.`;
   });

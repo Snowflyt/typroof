@@ -1,4 +1,4 @@
-import type { CallExpression, Diagnostic, Node, SourceFile, Type } from 'ts-morph';
+import type * as ts from 'typescript';
 
 import type { TyproofProject } from '../runtime';
 
@@ -35,34 +35,42 @@ interface Actual {
   readonly text: string;
   /**
    * The calculated type. For example, if `expect<Capitalize<'foo'>>()`,
-   * then `type` is `Type<ts.Type>` of `'Foo'`.
+   * then `type` is `ts.Type` of `'Foo'`.
    */
-  readonly type: Type;
+  readonly type: ts.Type;
   /**
    * The node of the type. For example, if `expect<Capitalize<'foo'>>()`,
-   * then `node` is `Node<ts.Node>` of `'Capitalize<'foo'>'`.
+   * then `node` is `ts.Node` of `'Capitalize<'foo'>'`.
    */
-  readonly node: Node;
+  readonly node: ts.Node;
 }
 
 export interface AnalyzerMeta {
   /**
    * The return type of the validator.
    */
-  validationResult?: Type;
+  validationResult?: ts.Type;
 
   /**
    * The typroof project.
    */
   project: TyproofProject;
   /**
+   * The TypeScript program of the project.
+   */
+  program: ts.Program;
+  /**
+   * The type checker of the project.
+   */
+  typeChecker: ts.TypeChecker;
+  /**
    * The source file to check.
    */
-  sourceFile: SourceFile;
+  sourceFile: ts.SourceFile;
   /**
    * Pre emit diagnostics of the source file.
    */
-  diagnostics: readonly Diagnostic[];
+  diagnostics: readonly ts.Diagnostic[];
   /**
    * Whether `expect` is called with `expect.not`.
    */
@@ -70,7 +78,7 @@ export interface AnalyzerMeta {
   /**
    * The statement of the assertion.
    */
-  statement: CallExpression;
+  statement: ts.CallExpression;
 }
 
 /**
@@ -83,9 +91,9 @@ export type Analyzer = (
   actual: Actual,
   /**
    * The type argument passed to the matcher. For example, if the method is
-   * `expect<T>().to(equal<U>)`, then `type` is `U`.
+   * `expect<T>().to(equal<U>)`, then `expectedType` is `U`.
    */
-  expectedType: Type,
+  expectedType: ts.Type,
   /**
    * Meta data of the analyzer function.
    */
@@ -141,19 +149,19 @@ export type Analyzer = (
  *   // If it is a type level only matcher (i.e. The related validator returns a boolean type),
  *   // the third argument is a boolean indicating whether the validation step is passed.
  *   // Otherwise (i.e. The related validator returns a `ToAnalyze<SomeType>`), the third
- *   // argument is a ts-morph `Type` object representing the type to analyze, e.g., `error`
- *   // returns `ToAnalyze<never>`, so the third argument is a `Type` object representing `never`.
- *   registerAnalyzer('equal', (actual, expected, passed, { not }) => {
+ *   // argument is a `ts.Type` object representing the type to analyze, e.g., `error` returns
+ *   // `ToAnalyze<never>`, so the third argument is a `Type` object representing `never`.
+ *   registerAnalyzer('equal', (actual, expected, passed, { not, typeChecker }) => {
  *     if (passed) return;
  *
  *     // Here `equal` is a type level only assertion, so we just need to report the error.
  *     // But you can do anything you want here, e.g., `error` checks if the type emits an
  *     // error. The fourth argument provides necessary metadata for you to achieve almost
- *     // anything you can via ts-morph.
+ *     // anything you can via TypeScript compiler API.
  *
- *     const actualText = chalk.bold(actual.text);
- *     const expectedType = chalk.bold(expected.getText());
- *     const actualType = chalk.bold(actual.type.getText());
+ *     const actualText = `\x1b[1m${actual.text}\x1b[22m`; // Bold the text with ANSI escape codes
+ *     const expectedType = `\x1b[1m${typeChecker.typeToString(expected)}\x1b[22m`;
+ *     const actualType = `\x1b[1m{typeChecker.typeToString(actual.type)}\x1b[22m`;
  *
  *     // Throw a string to report the error.
  *     throw (

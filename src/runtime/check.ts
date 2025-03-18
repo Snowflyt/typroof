@@ -1,6 +1,6 @@
-import type { SourceFile } from 'ts-morph';
-import { ts } from 'ts-morph';
+import * as ts from 'typescript';
 
+import type { AnalyzerMeta } from '../assertions/matcher';
 import { analyzers } from '../assertions/matcher';
 import { MatchingError } from '../errors';
 
@@ -11,14 +11,17 @@ export interface GroupResult {
   description: string;
   children: (GroupResult | TestResult)[];
 }
+
 export interface TestResult {
   description: string;
   assertionResults: AssertionResult[];
 }
+
 export interface AssertionResultPass {
   pass: true;
   assertion: Assertion;
 }
+
 export interface AssertionResultFail {
   pass: false;
   assertion: Assertion;
@@ -27,11 +30,12 @@ export interface AssertionResultFail {
   errorColumnNumber: number;
   errorMessage: string;
 }
+
 export type AssertionResult = AssertionResultPass | AssertionResultFail;
 
 export interface CheckResult {
   project: TyproofProject;
-  sourceFile: SourceFile;
+  sourceFile: ts.SourceFile;
   rootGroupResult: GroupResult;
 }
 
@@ -68,29 +72,36 @@ export const checkAnalyzeResult = ({
         } = assertion;
 
         const analyzer = analyzers.get(matcherName);
-        if (!analyzer)
-          throw new MatchingError(
-            `${rootGroup.description}:${matcherNode.getStartLineNumber()}:${
-              matcherNode.getStart() - matcherNode.getStartLinePos() + 1
-            } Cannot find analyzer for '${matcherName}'`,
+        if (!analyzer) {
+          const { character, line } = sourceFile.getLineAndCharacterOfPosition(
+            matcherNode.getStart(sourceFile),
           );
+          throw new MatchingError(
+            `${rootGroup.description}:${line + 1}:${character + 1} Cannot find analyzer for '${matcherName}'`,
+          );
+        }
 
         if (passedOrValidationResult !== true) {
+          const typeChecker = project.typeChecker;
+
           const actual = {
             text:
-              ts.isTypeNode(actualNode.compilerNode) ?
-                actualNode.getText()
-              : `typeof ${actualNode.getText()}`,
-            type: actualNode.getType(),
+              ts.isTypeNode(actualNode) ?
+                actualNode.getText(sourceFile)
+              : `typeof ${actualNode.getText(sourceFile)}`,
+            type: typeChecker.getTypeAtLocation(actualNode),
             node: actualNode,
           };
-          const meta = {
+
+          const meta: AnalyzerMeta = {
             ...(typeof passedOrValidationResult !== 'boolean' ?
               { validationResult: passedOrValidationResult }
             : {}),
             diagnostics,
             not,
             project,
+            program: project.program,
+            typeChecker,
             sourceFile,
             statement,
           };
@@ -99,12 +110,15 @@ export const checkAnalyzeResult = ({
             analyzer(actual, expectedType, meta);
           } catch (error) {
             if (typeof error === 'string') {
+              const { character, line } = sourceFile.getLineAndCharacterOfPosition(
+                actualNode.getStart(sourceFile),
+              );
               const assertionResult: AssertionResultFail = {
                 pass: false,
                 assertion,
                 filePathname: rootGroup.description,
-                errorLineNumber: actualNode.getStartLineNumber(),
-                errorColumnNumber: actualNode.getStart() - actualNode.getStartLinePos() + 1,
+                errorLineNumber: line + 1,
+                errorColumnNumber: character + 1,
                 errorMessage: error,
               };
               testResult.assertionResults.push(assertionResult);

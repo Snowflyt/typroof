@@ -29,10 +29,10 @@ import type { strictCover } from './strictCover';
 export const cover = <U>(y?: U) => match<'cover', U>();
 
 export const registerToCover = () => {
-  registerAnalyzer('cover', (actual, expected, { not }) => {
+  registerAnalyzer('cover', (actual, expected, { not, typeChecker }) => {
     const actualText = bold(actual.text);
-    const expectedType = bold(expected.getText());
-    const actualType = bold(actual.type.getText());
+    const expectedType = bold(typeChecker.typeToString(expected));
+    const actualType = bold(typeChecker.typeToString(actual.type));
 
     throw (
       `Expect ${actualText} (${actualType}) ${not ? 'not ' : ''}to cover ${expectedType}, ` +

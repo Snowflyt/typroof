@@ -22,6 +22,7 @@ describe('Prepend', () => {
   });
 
   it('should accept only strings', () => {
+    expect<Prepend<'foo', 'bar'>>().not.to(error);
     // @ts-expect-error
     expect<Prepend<42, 43>>().to(error);
   });

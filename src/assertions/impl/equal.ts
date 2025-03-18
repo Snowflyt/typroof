@@ -17,10 +17,10 @@ import { match, registerAnalyzer } from '../matcher';
 export const equal = <U>(y?: U) => match<'equal', U>();
 
 export const registerToEqual = () => {
-  registerAnalyzer('equal', (actual, expected, { not }) => {
+  registerAnalyzer('equal', (actual, expected, { not, typeChecker }) => {
     const actualText = bold(actual.text);
-    const expectedType = bold(expected.getText());
-    const actualType = bold(actual.type.getText());
+    const expectedType = bold(typeChecker.typeToString(expected));
+    const actualType = bold(typeChecker.typeToString(actual.type));
 
     throw (
       `Expect ${actualText} ${not ? 'not ' : ''}to equal ${expectedType}, ` +

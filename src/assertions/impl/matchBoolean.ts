@@ -18,10 +18,10 @@ import { match, registerAnalyzer } from '../matcher';
 export const matchBoolean = match<'matchBoolean'>();
 
 export const registerToMatchBoolean = () => {
-  registerAnalyzer('matchBoolean', (actual, _expected, { not }) => {
+  registerAnalyzer('matchBoolean', (actual, _expected, { not, typeChecker }) => {
     const actualText = bold(actual.text);
     const expectedType = bold('true, false or boolean');
-    const actualType = bold(actual.type.getText());
+    const actualType = bold(typeChecker.typeToString(actual.type));
 
     throw `Expect ${actualText} ${not ? 'not ' : ''}to be ${expectedType}, but got ${actualType}.`;
   });

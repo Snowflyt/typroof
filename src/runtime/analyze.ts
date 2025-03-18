@@ -1,13 +1,12 @@
 import path from 'node:path';
 
-import type { CallExpression, Diagnostic, Node, SourceFile, Type } from 'ts-morph';
-import { ts } from 'ts-morph';
+import * as ts from 'typescript';
 
 import { AnalyzingError } from '../errors';
 import { dim } from '../utils/colors';
 
 import type { TyproofProject } from './project';
-import { isCallOfSymbol, isCallOfSymbols } from './ts';
+import { findNodes, getAncestors, isInvocationOf } from './ts-utils';
 
 export interface Group {
   description: string;
@@ -18,30 +17,31 @@ export interface Test {
   assertions: Assertion[];
 }
 export interface Assertion {
-  statement: CallExpression;
-  actualNode: Node;
-  matcherNode: Node;
+  statement: ts.CallExpression;
+  actualNode: ts.Node;
+  matcherNode: ts.Node;
   matcherName: string;
   not: boolean;
-  expectedType: Type;
-  passedOrValidationResult: boolean | Type;
+  expectedType: ts.Type;
+  passedOrValidationResult: boolean | ts.Type;
 }
 
 export interface AnalyzeResult {
   project: TyproofProject;
-  sourceFile: SourceFile;
-  diagnostics: readonly Diagnostic[];
+  sourceFile: ts.SourceFile;
+  diagnostics: readonly ts.Diagnostic[];
   rootGroup: Group;
 }
 
-export const analyzeTestFile = (project: TyproofProject, file: SourceFile): AnalyzeResult => {
+export const analyzeTestFile = (project: TyproofProject, file: ts.SourceFile): AnalyzeResult => {
+  const { typeChecker } = project;
   const expectSymbol = project.getExpectSymbol();
   const describeSymbol = project.getDescribeSymbol();
   const itSymbol = project.getItSymbol();
   const testSymbol = project.getTestSymbol();
 
-  const getPrettifiedPathName = (file: SourceFile) => {
-    const filePathName = path.relative(process.cwd(), file.getFilePath()).replace(/\\/g, '/');
+  const getPrettifiedPathName = (file: ts.SourceFile) => {
+    const filePathName = path.relative(process.cwd(), file.fileName).replace(/\\/g, '/');
     const filePath = path.dirname(filePathName);
     let fileName = path.basename(filePathName);
     let exts = '';
@@ -55,36 +55,69 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
 
   const result: Group = { description: getPrettifiedPathName(file), children: [] };
 
-  const topLevelDescribeCalls = file
-    .getDescendantsOfKind(ts.SyntaxKind.CallExpression)
-    .filter(isCallOfSymbol(describeSymbol))
-    .filter((call) => !call.getAncestors().some(isCallOfSymbol(describeSymbol)));
-  const topLevelTestCalls = file
-    .getDescendantsOfKind(ts.SyntaxKind.CallExpression)
-    .filter(isCallOfSymbols([testSymbol, itSymbol]))
-    .filter((call) => !call.getAncestors().some(isCallOfSymbol(describeSymbol)));
+  // Find call expressions in the source file
+  const allCalls = findNodes(file, ts.isCallExpression);
+
+  // Check if a node is a call to a specific symbol
+  const isCallTo = (node: ts.Node, symbols: ts.Symbol | ts.Symbol[]): boolean =>
+    ts.isCallExpression(node) &&
+    isInvocationOf(typeChecker, node, Array.isArray(symbols) ? symbols : [symbols]);
+
+  // Check if a node has an ancestor that is a call to a specific symbol
+  const hasAncestorCallTo = (node: ts.Node, symbol: ts.Symbol): boolean =>
+    getAncestors(node).some((ancestor) => isCallTo(ancestor, symbol));
+
+  // Find top level describe calls
+  const topLevelDescribeCalls = allCalls
+    .filter((call) => isCallTo(call, describeSymbol))
+    .filter((call) => !hasAncestorCallTo(call, describeSymbol));
+
+  // Find top level test calls
+  const topLevelTestCalls = allCalls
+    .filter((call) => isCallTo(call, [testSymbol, itSymbol]))
+    .filter((call) => !hasAncestorCallTo(call, describeSymbol));
+
+  // Combine and sort by position
   const topLevelDescribeOrTestCalls = [...topLevelDescribeCalls, ...topLevelTestCalls].sort(
     (a, b) => a.getStart() - b.getStart(),
   );
 
-  const extractAssertions = (group: Group, calls: readonly CallExpression[]) => {
-    const getChildDescribeOrTestCalls = (describe: CallExpression) =>
-      describe
-        .getDescendantsOfKind(ts.SyntaxKind.CallExpression)
-        .filter(
-          (call) =>
-            isCallOfSymbols([testSymbol, itSymbol])(call) ||
-            (isCallOfSymbol(describeSymbol)(call) &&
-              call.getAncestors().find(isCallOfSymbol(describeSymbol)) === describe),
-        )
-        // Filter out calls that direct ancestor is not this `describe` block (#1)
-        .filter((call) => call.getAncestors().find(isCallOfSymbol(describeSymbol)) === describe);
+  const extractAssertions = (group: Group, calls: readonly ts.CallExpression[]) => {
+    // Find child describe or test calls within a describe block
+    const getChildDescribeOrTestCalls = (describe: ts.CallExpression): ts.CallExpression[] => {
+      // Get all descendant call expressions
+      const descendantCalls = findNodes(describe, ts.isCallExpression);
 
-    const getDescribeOrTestCallDescription = (call: CallExpression) =>
-      call.getArguments()[0]!.getText().trim().replace(/^['"]/, '').replace(/['"]$/, '');
+      return descendantCalls.filter((call) => {
+        const isTestOrIt = isCallTo(call, [testSymbol, itSymbol]);
+        const isNestedDescribe =
+          isCallTo(call, describeSymbol) &&
+          getAncestors(call).find((a) => isCallTo(a, describeSymbol)) === describe;
+
+        return (
+          (isTestOrIt || isNestedDescribe) &&
+          getAncestors(call).find((a) => isCallTo(a, describeSymbol)) === describe
+        );
+      });
+    };
+
+    // Get the description string from a call (first argument)
+    const getDescribeOrTestCallDescription = (call: ts.CallExpression): string => {
+      const arg = call.arguments[0];
+      if (!arg) {
+        const { character, line } = file.getLineAndCharacterOfPosition(call.getStart(file));
+        throw new AnalyzingError(
+          `${result.description}:${line + 1}:${character + 1} No description provided for ${call.expression.getText(
+            file,
+          )} call`,
+        );
+      }
+      if (ts.isStringLiteral(arg)) return arg.text;
+      return arg.getText(file).trim().replace(/^['"]/, '').replace(/['"]$/, '');
+    };
 
     for (const call of calls) {
-      if (isCallOfSymbol(describeSymbol)(call)) {
+      if (isCallTo(call, describeSymbol)) {
         const description = getDescribeOrTestCallDescription(call);
         const subGroup: Group = { description, children: [] };
         extractAssertions(subGroup, getChildDescribeOrTestCalls(call));
@@ -93,57 +126,110 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
       }
 
       const description = getDescribeOrTestCallDescription(call);
-      const body = call.getArguments()[1]!;
-      const expectCalls = body
-        .getDescendantsOfKind(ts.SyntaxKind.CallExpression)
-        .filter(isCallOfSymbol(expectSymbol));
+
+      // Find the function body (second argument)
+      const body = call.arguments[1];
+      if (!body || (!ts.isArrowFunction(body) && !ts.isFunctionExpression(body))) {
+        continue;
+      }
+
+      // Find expect calls in the function body
+      const expectCalls = findNodes(body, ts.isCallExpression).filter((call) =>
+        isCallTo(call, expectSymbol),
+      );
 
       const test: Test = { description, assertions: [] };
 
       for (const call of expectCalls) {
-        const actualNode = call.getTypeArguments()[0] ?? call.getArguments()[0];
+        // Get the actual value (type argument or first argument)
+        const actualNode = call.typeArguments?.[0] ?? call.arguments[0];
         if (!actualNode) continue;
 
-        let access = call.getParentIfKind(ts.SyntaxKind.PropertyAccessExpression);
+        // Find property access (`.not.to(...)`, `.to(...)`, etc.)
+        let access: ts.PropertyAccessExpression | undefined = undefined;
+        let current: ts.Node | undefined = call;
+
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        while (current && !access) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          if (current.parent && ts.isPropertyAccessExpression(current.parent)) {
+            access = current.parent;
+            break;
+          }
+          current = current.parent;
+        }
+
         if (!access) continue;
 
         let not = false;
 
-        if (access.getName() === 'not' && access.getType().getCallSignatures().length === 0) {
-          access = access.getParentIfKind(ts.SyntaxKind.PropertyAccessExpression)!;
-          not = true;
+        // Handle `.not` property
+        if (access.name.text === 'not') {
+          const callSignatures = typeChecker.getTypeAtLocation(access).getCallSignatures();
+          if (callSignatures.length === 0) {
+            // Find the next property access (.not.toEqual)
+            const nextAccess = access.parent;
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (nextAccess && ts.isPropertyAccessExpression(nextAccess)) {
+              access = nextAccess;
+              not = true;
+            }
+          }
         }
 
-        if (access.getType().getCallSignatures().length === 0) continue;
+        const toCallSignatures = typeChecker.getTypeAtLocation(access).getCallSignatures();
+        if (toCallSignatures.length === 0) continue;
 
-        const toCall = access.getParentIfKind(ts.SyntaxKind.CallExpression);
+        // Find the call to the matcher
+        let toCall: ts.CallExpression | undefined = undefined;
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (access.parent && ts.isCallExpression(access.parent)) {
+          toCall = access.parent;
+        }
+
         if (!toCall) continue;
 
-        const matcher = toCall.getArguments()[0];
-        if (!matcher)
+        const matcher = toCall.arguments[0];
+        if (!matcher) {
+          const { character, line } = file.getLineAndCharacterOfPosition(access.getStart(file));
           throw new AnalyzingError(
-            `${result.description}:${access.getStartLineNumber()}:${
-              access.getStart() - access.getStartLinePos() + 1
-            } No matcher provided for expect statement`,
+            `${result.description}:${line + 1}:${character + 1} No matcher provided for expect statement`,
           );
+        }
 
+        // Get matcher type information
+        const matcherType = typeChecker.getTypeAtLocation(matcher);
+        const matcherCallSignatures = matcherType.getCallSignatures();
+
+        // Get match type (either return type of matcher call or matcher type itself)
         const match =
-          matcher.getType().getCallSignatures().length > 0 ?
-            matcher.getType().getCallSignatures()[0]!.getReturnType()
-          : matcher.getType();
-        if (!match.getTypeArguments().length)
-          throw new AnalyzingError(
-            `${result.description}:${matcher.getStartLineNumber()}:${
-              matcher.getStart() - matcher.getStartLinePos() + 1
-            } '${matcher.getText()}' is not a valid matcher`,
-          );
+          matcherCallSignatures.length > 0 ?
+            matcherCallSignatures[0]!.getReturnType()
+          : matcherType;
 
-        const matcherName = match.getTypeArguments()[0]!.getText().slice(1, -1);
-        const expectedType = match.getTypeArguments()[1]!;
+        // Get type arguments of the match
+        const typeArgs = typeChecker.getTypeArguments(match as ts.TypeReference);
+
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!typeArgs || typeArgs.length === 0) {
+          const { character, line } = file.getLineAndCharacterOfPosition(matcher.getStart(file));
+          throw new AnalyzingError(
+            `${result.description}:${line + 1}:${character + 1} '${matcher.getText(file)}' is not a valid matcher`,
+          );
+        }
+
+        // Extract matcher name and expected type
+        const matcherName = typeChecker.typeToString(typeArgs[0]!).slice(1, -1);
+        const expectedType = typeArgs[1]!;
+
+        // Determine if test passed
+        const returnType = typeChecker.getTypeAtLocation(toCall);
+        const returnTypeString = typeChecker.typeToString(returnType);
+
         const passedOrValidationResult =
-          toCall.getReturnType().getText() === '"pass"' ? true
-          : toCall.getReturnType().getText() === '"fail"' ? false
-          : toCall.getReturnType().getTypeArguments()[0]!;
+          returnTypeString === '"pass"' ? true
+          : returnTypeString === '"fail"' ? false
+          : typeChecker.getTypeArguments(returnType as ts.TypeReference)[0]!;
 
         test.assertions.push({
           statement: toCall,
@@ -156,7 +242,7 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
         });
       }
 
-      group.children.push(test);
+      if (test.assertions.length > 0) group.children.push(test);
     }
   };
 
@@ -165,7 +251,7 @@ export const analyzeTestFile = (project: TyproofProject, file: SourceFile): Anal
   return {
     project,
     sourceFile: file,
-    diagnostics: project.cachedPreEmitDiagnostics.filter((d) => d.getSourceFile() === file),
+    diagnostics: project.diagnostics.filter((d) => d.file === file),
     rootGroup: result,
   };
 };
