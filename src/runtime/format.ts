@@ -5,7 +5,7 @@ import type { GroupResult, TestResult } from './check';
 const formatTestResult = (test: TestResult, indent: number): string => {
   let result = '';
 
-  const icon = test.assertionResults.some((a) => !a.pass) ? red('✘') : green('✔');
+  const icon = test.assertionResults.some((a) => !a.pass) ? red('×') : green('✓');
   result += ' '.repeat(indent) + `${icon} ${test.description}\n`;
 
   for (const assertion of test.assertionResults) {
@@ -59,7 +59,7 @@ const groupFailCount = (group: GroupResult): number => {
 export function formatGroupResult(group: GroupResult, indent = 0): string {
   let result = '';
 
-  const icon = groupHasFails(group) ? yellow('❯') : green('✔');
+  const icon = groupHasFails(group) ? yellow('❯') : green('✓');
   const tests = groupTestCount(group);
   result += ' '.repeat(indent) + `${icon} ${group.description} ${dim('(' + tests + ')')}\n`;
 

@@ -32,7 +32,7 @@ const cli = meow(
     $ typroof
 
       ❯ proof/string-utils.ts (2)
-        ✔ Append
+        ✓ Append
         ❯ Prepend (1)
           ✘ should prepend a string to another
             × 12:12 Expect Prepend<'foo', 'bar'> to equal "foobar", but got "barfoo".

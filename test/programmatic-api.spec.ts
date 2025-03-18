@@ -29,15 +29,15 @@ describe('Programmatic API', async () => {
     expect(cleanAnsi(formattedResults)).toEqual(
       trimIndent(`
         ❯ test/programmatic-api-test-proof.ts (5)
-          ✔ Append
+          ✓ Append
           ❯ Prepend (2)
-            ✘ should prepend a string to another
+            × should prepend a string to another
               × 21:12 Expect Prepend<'foo', 'bar'> to equal "foobar", but got "barfoo".
-            ✔ should accept only strings
-          ✔ describe01 (2)
-            ✔ it01
-            ✔ describe02 (1)
-              ✔ it02
+            ✓ should accept only strings
+          ✓ describe01 (2)
+            ✓ it01
+            ✓ describe02 (1)
+              ✓ it02
       `),
     );
   });
