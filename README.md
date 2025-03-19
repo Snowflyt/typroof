@@ -70,9 +70,9 @@ npx typroof
 You’ll see the error clearly reported:
 
 ```shell
-❯ test/programmatic-api-test-proof.ts (1)
+❯ src/string-utils.proof.ts (1)
   × Append
-    ❯ test/programmatic-api-test-proof.ts:10:10
+    ❯ src/string-utils.proof.ts:6:37
       Expect Append<'foo', 'bar'> to equal "foo", but got "foobar".
 
  Test Files  1 failed (1)
@@ -91,7 +91,7 @@ Let’s fix the error in the test file:
 Success! You’ve written and verified your first type test with Typroof. 🎉
 
 ```shell
-✓ test/programmatic-api-test-proof.ts (1)
+✓ src/string-utils.proof.ts (1)
   ✓ Append
 
  Test Files  1 passed (1)
