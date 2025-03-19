@@ -123,6 +123,8 @@ export const checkAnalyzeResult = ({
               };
               testResult.assertionResults.push(assertionResult);
               continue;
+            } else {
+              throw error;
             }
           }
         }
