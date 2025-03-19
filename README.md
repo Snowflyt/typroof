@@ -15,21 +15,9 @@ https://github.com/user-attachments/assets/53aa8f97-c580-428e-89b2-2d07d1c5680d
 npm install --save-dev typroof
 ```
 
-## Overview
+## Quickstart
 
-This tool lets you write tests for your TypeScript type definitions just like what you would do for your runtime code like Jest, Vitest, etc. It provides similar APIs like `test`, `expect`, `describe` in Jest, but for your type definitions.
-
-By default, these test files should end with `.proof.ts` or be placed in a `proof/` directory. They will not be really executed, but instead be parsed and statically analyzed against your type definitions. Special constructs such as `expect<Append<'foo', 'bar'>>().to(equal<'foobar'>)` or `expect<Append<'foo', 42>>().to(error)` will be parsed and analyzed to see if they are valid.
-
-The `typroof` CLI will search for these test files and run static analysis on them. It will then report the results to the console.
-
-```shell
-[npx] typroof [path]
-```
-
-Use `typroof --help` for usage information.
-
-## Usage
+### Define your types
 
 Assume that you write a `string-utils.ts` file with the following type definitions:
 
@@ -41,449 +29,486 @@ export const append = <S extends string, Ext extends string>(s: S, ext: Ext): Ap
   `${s}${ext}`;
 ```
 
-Then you can write a `string-utils.proof.ts` file to test them:
+### Add a type test
+
+Create a `string-utils.proof.ts` file in the same directory to test them:
 
 ```typescript
 import { describe, equal, error, expect, extend, it, test } from 'typroof';
-
 import { append } from './string-utils';
-
 import type { Append, Prepend } from './string-utils';
 
 test('Append', () => {
-  expect<Append<'foo', 'bar'>>().to(equal<'foobar'>);
-  // If you write an assertion that fails, you can immediately see the error message by TypeScript:
-  // expect<Append<'foo', 'bar'>>().to(equal<'foo'>);
-  // //                                ~~~~~~~~~~~~
-  // //            Argument of type '...' is not assignable to parameter
-  // //         of type '"Expect `'foobar'` to equal `'foo'`, but does not"'
+  expect<Append<'foo', 'bar'>>().to(equal<'foo'>);
   expect<Append<'foo', 'bar'>>().to(extend<string>);
   expect<Append<'foo', 'bar'>>().not.to(extend<number>);
   expect(append('foo', 'bar')).to(equal('foobar' as const));
 });
-
-describe('Prepend', () => {
-  it('should prepend a string to another', () => {
-    expect<Prepend<'foo', 'bar'>>().to(equal<'foobar'>);
-  });
-
-  it('should accept only strings', () => {
-    // @ts-expect-error - should trigger error
-    expect<Prepend<42, 43>>().to(error);
-  });
-});
 ```
 
-You can see that the APIs are very similar to Jest. The `test` function and its alias `it` to create a test case. The `describe` function to create a test suite (group of test cases). The `expect` function to create an assertion. The `toEqual` function to assert that the type is equal to the expected type.
-
-You may notice that we use two different syntaxes for the `equal` matcher. You can either pass the expected type as a type argument, or pass it as a value argument. The former is useful when testing generic types, while the latter will be useful when testing the return type of a function. You can choose whichever you like. Even `expect` itself can use a value argument instead of a type argument, such as `expect('foobar').to(equal<'foobar'>)`.
-
-Then run `typroof` to test your type definitions:
-
-![Screenshot](docs/screenshot.png)
-
-The `equal` matcher strictly checks if the type is equal to the expected type. If you want to check if the type is assignable to the expected type, you can use the `extend` matcher:
-
-```typescript
-expect<Append<'foo', 'bar'>>().to(extend<string>);
-```
-
-## Matchers
-
-Matchers are indicators that can be used via `expect<T>(x?: T).to(matcher<...>)` or `expect<T>(x?: T).not.to(matcher<...>)` to assert the type. Typroof provides some built-in matchers, and you can also create your own matchers (see [Plugin API](#plugin-api)).
-
-For example:
-
-```typescript
-expect<Append<'foo', 'bar'>>().to(equal<'foobar'>);
-// @ts-expect-error - The `error` matcher will handle `@ts-expect-error` comments correctly
-expect<Append<1, 2>>().to(error);
-expect<Append<'foo', 'bar'>>().not.to(beAny);
-expect(append('foo', 'bar')).to(extend<string>);
-expect('baz' as const).to(equal('baz' as const));
-```
-
-The actual type to test can either be passed as a type argument to `expect`, or passed as a value argument to `expect`.The former is useful when testing generic types, while the latter will be useful when testing the return type of a function. You can choose whichever you like.
-
-The following is a list of built-in matchers. Remember that you can also use `expect.not` to negate them.
-
-### `error`
-
-Expect a pre emitted diagnostic between the start and end of the given type.
-
-### `equal<U>(y?: U)`
-
-Expect the type to be equal to the given type.
-
-### `beAny`
-
-Expect the type to be `any`.
-
-### `beNever`
-
-Expect the type to be `never`.
-
-### `beNull`
-
-Expect the type to be `null`.
-
-### `beUndefined`
-
-Expect the type to be `undefined`.
-
-### `beNullish`
-
-Expect the type to be `null`, `undefined` or `null | undefined`.
-
-### `matchBoolean`
-
-Expect the type to be `true`, `false` or `boolean`.
-
-### `beTrue`
-
-Expect the type to be `true`.
-
-### `beFalse`
-
-Expect the type to be `false`.
-
-### `extend<U>(y?: U)`
-
-Expect the type to be assignable to the given type (i.e. the given type should be a supertype of the type).
-
-**⚠ Warning:** In TypeScript, `any` is both a subtype and a supertype of all other types. Therefore, `expect<string>().to(extend<any>)` and `expect<any>().to(extend<string>)` will both pass. The exception is `never`, which is not assignable to any type (thus `expect<any>().to(extend<never>)` fails). Keep this in mind, as it may lead to unexpected results when working with `any` or `never`. Use `strictExtend` for a stricter version that fails if either the type or the given type is `never` or `any`.
-
-### `strictExtend<U>(y?: U)`
-
-Like `extend`, but fails if either the type or the given type is `never` or `any`.
-
-### `cover<U>(y?: U)`
-
-Expect the given type to be assignable to the type (i.e. the given type should be a subtype of the type).
-
-**⚠ Warning:** In TypeScript, `any` is both a subtype and a supertype of all other types. Therefore, `expect<string>().to(cover<any>)` and `expect<any>().to(cover<string>)` will both pass. The exception is `never`, which is not assignable to any type (thus `expect<never>().to(cover<any>)` fails). Keep this in mind, as it may lead to unexpected results when working with `any` or `never`. Use `strictCover` for a stricter version that fails if either the type or the given type is `never` or `any`.
-
-### `strictCover<U>(y?: U)`
-
-Like `cover`, but fails if either the type or the given type is `never` or `any`.
-
-## Configuration
-
-You can create a `typroof.config.ts` file in the root directory of your project to configure Typroof. It should export the configuration object. Typroof exports a `defineConfig` function to help you define the configuration object.
-
-```typescript
-// typroof.config.ts
-import { defineConfig } from 'typroof/config';
-
-export default defineConfig({
-  testFiles: '**/*.proof.ts',
-});
-```
-
-Don't forget to add your config file to `tsconfig.json`.
-
-**⚠ Warning:** Make sure not to import value directly from `typroof` in your config file (use `typroof/config`, `typroof/plugin`, etc. instead), otherwise you may get circular dependencies error when Typroof is loading config.
-
-Typroof provides type definitions for the configuration object, so you can get type hints in your editor.
-
-You can use either `.ts`, `.mts`, `.cts`, `.js`, `.mjs` or `.cjs` as the extension of the config file. The priority is `.ts` > `.mts` > `.cts` > `.js` > `.mjs` > `.cjs`.
-
-## API
-
-You can invoke the `typroof` CLI directly, or use the `typroof` function in your code.
-
-```typescript
-import typroof, { formatGroupResult, formatSummary } from 'typroof';
-
-const startedAt = new Date();
-const results = await typroof();
-const finishedAt = new Date();
-
-for (const result of results) {
-  console.log(formatGroupResult(result.rootGroupResult));
-  console.log();
-}
-console.log(
-  formatSummary({ groups: results.map((r) => r.rootGroupResult), startedAt, finishedAt }),
-);
-```
-
-## Plugin API
-
-Typroof supports plugins to extend its matchers.
-
-Matchers are just indicators to tell Typroof how to assert the type. The process actually involves two steps: The type level validation and the code analysis using TypeScript compiler API.
-
-Take a look at how the `equal` matcher is implemented:
-
-```typescript
-// `registerAnalyzer` is not actually exported,
-// it is just an example to show how to create custom matchers.
-import { match, registerAnalyzer } from 'typroof/plugin';
-import type { Actual, Expected, Validator } from 'typroof/plugin';
-
-// `equal` is a matcher that takes a type argument.
-// If no argument is needed, you can simply use `match<'matcherName'>()`
-// instead of a function.
-export const equal = <U>(y?: U) => match<'equal', U>();
-
-/**
- * Check whether `T` is equal to `U`.
- * It is a utility type used in the type level validation step.
- */
-type Equals<T, U> =
-  (<G>() => G extends T ? 1 : 2) extends <G>() => G extends U ? 1 : 2 ? true : false;
-
-// Define how the type level validation step works.
-// If type-level validation is the only thing you need to do (e.g., `equal`),
-// it should be a `Validator` returning a boolean type.
-// Otherwise, it should return a `ToAnalyze<SomeType>`, e.g. `error` returns
-// `ToAnalyze<never>`, the `ToAnalyze` means to determine whether the assertion
-// passed or not needs further code analysis. You can pass any type to
-// `ToAnalyze` for the code analysis step to use, but here `error` does not need it.
-declare module 'typroof/plugin' {
-  interface ValidatorRegistry {
-    // Here `equal` is the name of the matcher,
-    // it must be the same as that in `match<'equal'>()`.
-    equal: EqualValidator;
-  }
-}
-// Use a type-level function (i.e. HKT) to define a type-level validator.
-interface EqualValidator extends Validator {
-  return: Equals<Actual<this>, Expected<this>>;
-}
-
-// The `registerToEqual` helper function should be called somewhere before code analysis is
-// executed to register the corresponding analyzer for the `equal` matcher.
-export const registerToEqual = () => {
-  // The registered analyzer is called when the type-level validator does not evaluate to
-  // `true` (i.e, `false` or `ToAnalyze<SomeType>`).
-  // If the validator evaluates to `ToAnalyze<SomeType>`, the `SomeType` object will be
-  // accessible as the `validationResult` property in the third argument of the analyzer
-  // as a `Type<ts.Type>` object.
-  // Here, since `equal` is a type-level only matcher, so the analyzer is only used to
-  // report the error message, and `validationResult` is not used, but it can be useful
-  // if you are implementing a matcher like `haveJSDoc` that needs to analyze the type
-  // using TypeScript compiler API.
-  registerAnalyzer('equal', (actual, expected, { not, typeChecker, validationResult }) => {
-    // Here `equal` is a type-level only assertion, so we just need to report the error.
-    // But you can do anything you want here, e.g., `error` checks if the type emits an
-    // error. The fourth argument provides necessary metadata for you to achieve almost
-    // anything you can via TypeScript compiler API.
-
-    const actualText = `\x1b[1m${actual.text}\x1b[22m`; // Bold the text with ANSI escape codes
-    const expectedType = `\x1b[1m${typeChecker.typeToString(expected)}\x1b[22m`;
-    const actualType = `\x1b[1m{typeChecker.typeToString(actual.type)}\x1b[22m`;
-
-    // Throw a string to report the error.
-    throw (
-      `Expect ${actualText} ${not ? 'not ' : ''}to equal ${expectedType}, ` +
-      `but got ${actualType}.`
-    );
-  });
-};
-```
-
-`Validator`s in Typroof are type-level functions (HKTs) compatible with the [hkt-core](https://github.com/Snowflyt/hkt-core) V1 standard, see [its documentation](https://github.com/Snowflyt/hkt-core) for more information.
-
-And that is all. As you see here, it is really easy to create custom matchers, and highly customizable powered by ts-morph.
-
-Typroof automatically generates a compile-time error message if the assertion fails:
+Oops! Seems we have made a mistake, and TypeScript language server is already showing you the error message in your editor:
 
 ```typescript
 expect<Append<'foo', 'bar'>>().to(equal<'foo'>);
 //                                ~~~~~~~~~~~~
 //            Argument of type '...' is not assignable to parameter
-//             of type "Validation failed: equal<'foobar', 'foo'>"
+//         of type '"Expect `'foobar'` to equal `'foo'`, but does not"'
 ```
 
-But if you want a more readable error message, you can change the validator to return a string instead of a boolean if the assertion fails:
+This is the **WYSIWYG editor experience** Typroof provides—instant feedback right in your editor.
+
+Let’s ignore this error for now and see what happens when we run the tests.
+
+### Run the CLI
+
+Run `typroof` to test your type definitions:
+
+```shell
+npx typroof
+```
+
+You’ll see the error clearly reported:
+
+```shell
+❯ test/programmatic-api-test-proof.ts (1)
+  × Append
+    ❯ test/programmatic-api-test-proof.ts:10:10
+      Expect Append<'foo', 'bar'> to equal "foo", but got "foobar".
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  17:50:11
+   Duration  2ms
+```
+
+Let’s fix the error in the test file:
+
+```diff
+- expect<Append<'foo', 'bar'>>().to(equal<'foo'>);
++ expect<Append<'foo', 'bar'>>().to(equal<'foobar'>);
+```
+
+Success! You’ve written and verified your first type test with Typroof. 🎉
+
+```shell
+✓ test/programmatic-api-test-proof.ts (1)
+  ✓ Append
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  17:51:26
+   Duration  2ms
+```
+
+## Usage
+
+After getting started with Typroof, let’s explore its core concepts and patterns in more depth.
+
+### API Overview
+
+Typroof provides a familiar testing API that resembles Jest:
+
+- **`test`/`it`**: Create individual test cases
+- **`describe`**: Group related tests together
+- **`expect`**: Create an assertion on a type or value
+- **`.to(matcher)`**: Apply a matcher to validate the assertion
+- **`.not.to(matcher)`**: Negate a matcher expectation
+
+### Assertion Patterns
+
+Typroof offers flexible ways to write assertions:
+
+```typescript
+// Testing a type directly (most common for type utilities)
+expect<MyType<Input>>().to(equal<Expected>);
+
+// Testing a value’s type (useful for functions)
+expect(myFunction('input')).to(equal<ExpectedReturnType>);
+
+// Negating an assertion
+expect<MyType>().not.to(beAny);
+
+// Testing for errors
+// @ts-expect-error
+expect<InvalidType>().to(error);
+```
+
+### Matcher Flexibility
+
+Matchers can receive expected types in two ways:
+
+```typescript
+// As a type parameter (preferred for testing generic types)
+expect<MyType<'input'>>().to(equal<'expected'>);
+
+// As a value parameter (useful for function return types)
+const result = computeSomething();
+const expected = computeSomethingElse();
+expect(result).to(equal(expected));
+```
+
+### Composing Tests
+
+```typescript
+describe('StringUtils', () => {
+  describe('Append', () => {
+    it('concatenates two strings', () => {
+      expect<Append<'hello', ' world'>>().to(equal<'hello world'>);
+    });
+
+    it('returns a string type', () => {
+      expect<Append<'a', 'b'>>().to(extend<string>);
+    });
+  });
+
+  describe('Split', () => {
+    it('splits a string into tuple', () => {
+      expect<Split<'a-b-c', '-'>>().to(equal<['a', 'b', 'c']>);
+    });
+  });
+});
+```
+
+### Testing For Type Errors
+
+Test that invalid types correctly produce errors:
+
+```typescript
+describe('NumericUtilities', () => {
+  it('rejects non-numeric inputs', () => {
+    // @ts-expect-error - string is not assignable to number
+    expect<Add<'not-a-number', 5>>().to(error);
+  });
+});
+```
+
+### Running Tests
+
+Run tests with the Typroof CLI:
+
+```shell
+npx typroof [optional path]
+```
+
+By default, Typroof will find all `.proof.ts` files or files in `proof/` directories and analyze them. To customize which files to test, you can create a `typroof.config.ts` file in the root directory of your project. See [Configuration](#configuration) for more information.
+
+## Matchers
+
+Matchers are the core of Typroof’s assertion system. They let you validate type relationships and characteristics in your tests.
+
+### Matcher Basics
+
+Each matcher can be used with the `expect().to()` or `expect().not.to()` syntax:
+
+```typescript
+// Basic matcher usage
+expect<MyType>().to(matcherName<OptionalTypeArg>);
+
+// Negated matcher usage
+expect<MyType>().not.to(matcherName<OptionalTypeArg>);
+```
+
+### Built-in Matchers
+
+Typroof provides two categories of matchers for different testing needs:
+
+#### Equality and Basic Type Matchers
+
+| Matcher            | Description                                            | Example                                                    |
+| ------------------ | ------------------------------------------------------ | ---------------------------------------------------------- |
+| `equal<T>`         | Checks for exact type equality                         | `expect<'hello'>().to(equal<'hello'>)`                     |
+| `error`            | Verifies a type produces a compilation error           | `expect<ConcatString<'foo', 42>>().to(error)`              |
+| `beAny`            | Checks if a type is `any`                              | `expect<any>().to(beAny)`                                  |
+| `beNever`          | Checks if a type is `never`                            | `expect<never>().to(beNever)`                              |
+| `beNull`           | Checks if a type is `null`                             | `expect<null>().to(beNull)`                                |
+| `beUndefined`      | Checks if a type is `undefined`                        | `expect<undefined>().to(beUndefined)`                      |
+| `beNullish`        | Checks if a type is `null`, `undefined` or their union | <code>expect<null &#124; undefined>().to(beNullish)</code> |
+| `beTrue`/`beFalse` | Checks if a type is `true`/`false`                     | `expect<true>().to(beTrue)`                                |
+| `matchBoolean`     | Checks if a type is `true`, `false` or `boolean`       | `expect<boolean>().to(matchBoolean)`                       |
+
+#### Type Relationship Matchers
+
+| Matcher           | Description                                   | Example                                     |
+| ----------------- | --------------------------------------------- | ------------------------------------------- |
+| `extend<T>`       | Checks if a type is assignable to another     | `expect<'hello'>().to(extend<string>)`      |
+| `strictExtend<T>` | Like `extend` but stricter with `any`/`never` | `expect<string>().to(strictExtend<string>)` |
+| `cover<T>`        | Checks if a type is a supertype of another    | `expect<string>().to(cover<'hello'>)`       |
+| `strictCover<T>`  | Like `cover` but stricter with `any`/`never`  | `expect<string>().to(strictCover<'hello'>)` |
+
+### Matcher Examples
+
+Testing type utilities:
+
+```typescript
+// Testing a string template utility
+type Prefix<T extends string, P extends string> = `${P}${T}`;
+
+test('Prefix type', () => {
+  expect<Prefix<'World', 'Hello '>>().to(equal<'Hello World'>);
+  expect<Prefix<'file', 'index.'>>().to(extend<string>);
+  expect<Prefix<'foo', 'bar'>>().not.to(equal<'foobar'>);
+});
+```
+
+Testing for compilation errors:
+
+```typescript
+// Testing constraint violations
+test('NumericId constraints', () => {
+  type NumericId<T extends number> = T;
+
+  expect<NumericId<42>>().to(extend<number>);
+
+  // @ts-expect-error - String not assignable to number
+  expect<NumericId<'42'>>().to(error);
+});
+```
+
+### Understanding Special Types
+
+TypeScript’s `any` and `never` types have special behavior in type relationships:
+
+- `any` is both a subtype and supertype of all types.
+- `never` is a subtype of all types but has no subtypes.
+
+This can lead to unexpected results in type tests:
+
+```typescript
+// Regular extend allows any to be assigned to anything
+expect<any>().to(extend<string>); // passes
+
+// strictExtend prevents this
+expect<any>().not.to(strictExtend<string>); // passes
+```
+
+For more predictable behavior with these types, use `strictExtend` and `strictCover` when testing type relationships involving `any` or `never`.
+
+## Configuration
+
+Typroof can be customized through a configuration file to control which files are tested and how tests are run.
+
+### Configuration File
+
+Create a `typroof.config.ts` file in your project root:
+
+```typescript
+import { defineConfig } from 'typroof/config';
+
+export default defineConfig({
+  testFiles: '**/*.types.test.ts',
+});
+```
+
+You can use either `.ts`, `.mts`, `.cts`, `.js`, `.mjs` or `.cjs` as the extension of the config file. The priority is `.ts` > `.mts` > `.cts` > `.js` > `.mjs` > `.cjs`.
+
+### Available Options
+
+| Option             | Type                                | Default                                          | Description                                                               |
+| ------------------ | ----------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------- |
+| `tsConfigFilePath` | `string`                            | `'./tsconfig.json'`                              | Path to the TypeScript configuration file                                 |
+| `testFiles`        | <code>string &#124; string[]</code> | `['**/*.proof.{ts,tsx}', 'proof/**/*.{ts,tsx}']` | Glob pattern(s) for test files                                            |
+| `compilerOptions`  | `ts.CompilerOptions`                | `{}`                                             | Additional TypeScript compiler options to override those in tsconfig.json |
+| `plugins`          | `Plugin[]`                          | `[]`                                             | Typroof plugins that extend functionality                                 |
+
+### Import Notice
+
+When creating your configuration file, import from the specific subpath:
+
+```typescript
+// ✅ Correct import
+import { defineConfig } from 'typroof/config';
+```
+
+### CLI Usage
+
+You can run Typroof from the command line:
+
+```shell
+# Run in current directory
+npx typroof
+
+# Run in specific directory
+npx typroof /path/to/project
+
+# Specify test files
+npx typroof --files "src/**/*.proof.ts"
+
+# Use custom config file
+npx typroof --config ./typroof.config.ts
+
+# Get help
+npx typroof --help
+```
+
+Available options:
+
+- `--files, -f`: Glob pattern(s) for test files.
+- `--config, -c`: Path to config file.
+- `--help`: Show help information.
+- `--version`: Show version information.
+
+## Programmatic Usage
+
+You can use Typroof programmatically within your own Node.js scripts or tools:
+
+```typescript
+import typroof, { formatGroupResult, formatSummary } from 'typroof';
+
+// Run Typroof with default options
+const startedAt = new Date();
+const results = await typroof();
+const finishedAt = new Date();
+
+// Display results
+for (const result of results) {
+  console.log(formatGroupResult(result.rootGroupResult));
+  console.log();
+}
+
+// Print summary
+console.log(
+  formatSummary({ groups: results.map((r) => r.rootGroupResult), startedAt, finishedAt }),
+);
+```
+
+### API Options
+
+The `typroof()` function accepts the same options available in the configuration file, plus an additional `cwd` option:
+
+```typescript
+// Run with custom options
+const results = await typroof({
+  // Standard config options
+  testFiles: ['src/**/*.proof.ts'],
+  compilerOptions: { strictNullChecks: true },
+  plugins: [],
+  // Additional API-only option
+  cwd: '/path/to/project', // Custom working directory
+});
+```
+
+The `cwd` option sets the base directory for:
+
+- Finding the default `tsconfig.json` file (`${cwd}/tsconfig.json`).
+- Resolving relative paths in your configuration.
+
+If not provided, `cwd` defaults to `process.cwd()`.
+
+## Plugin API & How It Works
+
+Typroof supports plugins to extend its functionality with custom matchers. The plugin system allows you to:
+
+- Create custom type matchers.
+- Share matchers as reusable packages.
+- Extend Typroof’s core functionality.
+
+### Creating a Custom Matcher
+
+A matcher in Typroof consists of two parts:
+
+1. **Type validator**: A type-level function that checks relationships at compile time.
+2. **Analyzer**: A runtime function that further analyzes types using the TypeScript compiler API, and reports errors in CLI.
+
+Note that many built-in matchers in Typroof are type-level only matchers whose analyzers are only used to report errors, e.g., `equal`, `extend`, `beNever`, etc. While some matchers require runtime analysis in its analyzer, e.g., `error`, which checks if a type emits an error with TypeScript compiler API.
+
+Here’s a simple custom matcher example (a type-level only matcher):
+
+```typescript
+import { match } from 'typroof/plugin';
+import type { Actual, Expected, Validator } from 'typroof/plugin';
+
+// 1. Create and export the matcher
+export const startsWith = <U extends string>(prefix?: U) => match<'startsWith', U>();
+
+// 2. Define the validator type
+declare module 'typroof/plugin' {
+  interface ValidatorRegistry {
+    startsWith: StartsWithValidator;
+  }
+}
+type Cast<T, U> = T extends U ? T : U;
+// Use a type-level function (i.e. HKT) to define a type-level validator
+interface StartsWithValidator extends Validator {
+  // Return `true` or `false` to indicate whether the assertion passed or not
+  return: Actual<this> extends `${Cast<Expected<this>, string>}${string}` ? true : false;
+}
+
+// 3. Create a plugin to register the analyzer
+import type { Plugin } from 'typroof/plugin';
+
+export const startsWith = (): Plugin => ({
+  name: 'typroof-plugin-starts-with',
+  analyzers: {
+    // `actual` and `expected` are the types passed to the matcher (T and U).
+    startsWith: (actual, expected, { not, typeChecker }) => {
+      // NOTE: This analyzer is only called when the type-level validation fails
+      // We use TypeScript compiler API to get the text of the type:
+      const actualType = typeChecker.typeToString(actual.type);
+      const expectedType = typeChecker.typeToString(expected);
+      // Throw a string to report the error
+      throw `Expected ${actual.text} ${not ? 'not ' : ''}to start with "${expectedType}", but got "${actualType}"`;
+    },
+  },
+});
+
+// 4. Use the plugin in your config
+// typroof.config.ts
+import { defineConfig } from 'typroof/config';
+
+export default defineConfig({
+  plugins: [startsWith()],
+});
+```
+
+`Validator`s in Typroof are type-level functions (HKTs) compatible with the [hkt-core](https://github.com/Snowflyt/hkt-core) V1 standard, see [its documentation](https://github.com/Snowflyt/hkt-core) for more information.
+
+### Deep Dive: Custom Error Messages for Validators
+
+In the previous example, Typroof already automatically generates a compile-time error message if the assertion fails:
+
+```typescript
+expect<'foobar'>().to(startsWith<'bar'>);
+//                    ~~~~~~~~~~~~~~~~~
+//    Argument of type '...' is not assignable to parameter
+//   of type "Validation failed: startsWith<'foobar', 'bar'>"
+```
+
+However, it’s not very readable, compared to Typroof’s built-in matchers:
+
+```typescript
+expect<Append<'foo', 'bar'>>().to(equal<'foo'>);
+//                                ~~~~~~~~~~~~
+//            Argument of type '...' is not assignable to parameter
+//          of type "Expect `'foobar'` to equal `'foo'`, but does not"
+```
+
+The magic behind this is that the `equal` matcher’s validator returns a string type instead of a boolean type if the assertion fails, which is used as the error message.
+
+Let’s rewrite the `startsWith` matcher to return a string type as the error message:
 
 ```typescript
 import type { Actual, Expected, IsNegated, Stringify, Validator } from 'typroof/plugin';
 
 declare module 'typroof/plugin' {
   interface ValidatorRegistry {
-    equal: EqualValidator;
+    startsWith: StartsWithValidator;
   }
 }
-interface EqualValidator extends Validator {
+
+interface StartsWithValidator extends Validator {
   // `IsNegated<this>` is `true` if `.not` is used, otherwise `false`.
   return: IsNegated<this> extends false ?
-    // If `.not` is not used, return a string as the error message if `T` is not equal to `U`
-    Equals<Actual<this>, Expected<this>> extends true ?
+    // If `.not` is not used
+    Actual<this> extends `${Cast<Expected<this>, string>}${string}` ?
       true
-    : `Expect \`${Stringify<Actual<this>>}\` to equal \`${Stringify<Expected<this>>}\`, but does not`
-  : // If `.not` is used, return a string as the error message if `T` is equal to `U`
-  Equals<Actual<this>, Expected<this>> extends false ? false
-  : `Expect the type not to equal \`${Stringify<Expected<this>>}\`, but does`;
+    : `Expect \`${Stringify<Actual<this>>}\` to start with \`${Stringify<Expected<this>>}\`, but does not`
+  : // If `.not` is used
+  Actual<this> extends `${Cast<Expected<this>, string>}${string}` ? false
+  : `Expect the type not to start with \`${Stringify<Expected<this>>}\`, but does`;
 }
 ```
 
-Now let’s take a look at how `error` is implemented:
-
-```typescript
-import { match, registerAnalyzer } from 'typroof/plugin';
-
-import type { ToAnalyze } from 'typroof/plugin';
-
-export const error = match<'error'>();
-
-declare module 'typroof/plugin' {
-  interface ValidatorRegistry {
-    error: ErrorValidator;
-  }
-}
-interface ErrorValidator {
-  return: ToAnalyze<never>;
-}
-
-export const registerToError = () => {
-  registerAnalyzer('error', (actual, _expected, { diagnostics, not, sourceFile, statement }) => {
-    // Check if a diagnostic error exists for this node
-    const diagnostic = diagnostics.find((diagnostic) => {
-      const start = diagnostic.start;
-      if (start === undefined) return false;
-
-      const length = diagnostic.length;
-      if (length === undefined) return false;
-
-      const end = start + length;
-      const nodeStart = actual.node.getStart(sourceFile);
-      const nodeEnd = actual.node.getEnd();
-
-      return start >= nodeStart && end <= nodeEnd;
-    });
-
-    // Find @ts-expect-error comments that apply to this expression
-    const findTSExpectError = () => {
-      const sourceText = sourceFile.text;
-
-      // 1. Check for leading comments directly before the statement
-      const leadingComments =
-        ts.getLeadingCommentRanges(sourceText, statement.getFullStart()) || [];
-
-      // 2. Find any internal comments within the statement’s full text range
-      // This helps with multi-line expressions that have inline comments
-      const statementStart = statement.getFullStart();
-      const statementEnd = statement.getEnd();
-      const statementText = sourceText.substring(statementStart, statementEnd);
-
-      // Track all potential comment positions
-      const commentPositions: { start: number; end: number }[] = [
-        ...leadingComments.map((c) => ({ start: c.pos, end: c.end })),
-      ];
-
-      // Scan the statement for possible comment starts
-      let pos = 0;
-      while (pos < statementText.length) {
-        // Look for // comments
-        if (statementText.substring(pos, pos + 2) === '//') {
-          const startPos = statementStart + pos;
-          let endPos = statementText.indexOf('\n', pos);
-          if (endPos === -1) endPos = statementText.length;
-          commentPositions.push({
-            start: startPos,
-            end: statementStart + endPos,
-          });
-          pos = endPos + 1;
-          continue;
-        }
-
-        // Look for /* */ comments
-        if (statementText.substring(pos, pos + 2) === '/*') {
-          const startPos = statementStart + pos;
-          const endPos = statementText.indexOf('*/', pos);
-          if (endPos !== -1) {
-            commentPositions.push({
-              start: startPos,
-              end: statementStart + endPos + 2,
-            });
-            pos = endPos + 2;
-            continue;
-          }
-        }
-
-        pos++;
-      }
-
-      // Check all comment positions for @ts-expect-error
-      for (const { end, start } of commentPositions) {
-        const commentText = sourceText.substring(start, end);
-        if (commentText.includes('@ts-expect-error')) {
-          // Ensure this @ts-expect-error is not already used by checking
-          // if there’s a diagnostic that starts at this exact position
-          const isUnused = !diagnostics.some(
-            (d) => d.start === start && d.code === 2578, // TypeScript’s code for @ts-expect-error
-          );
-          if (isUnused) return true;
-        }
-      }
-
-      return false;
-    };
-
-    // Check if error is triggered either by diagnostic or @ts-expect-error
-    const triggeredError = !!diagnostic || findTSExpectError();
-
-    if (not ? triggeredError : !triggeredError) {
-      const actualText = bold(actual.text);
-      throw (
-        `Expect ${actualText} ${not ? 'not ' : ''}to trigger error, ` +
-        `but ${not ? 'did' : 'did not'}.`
-      );
-    }
-  });
-};
-```
-
-So how to extend Typroof with your own matchers? The code below shows how to do it:
-
-```typescript
-// In your entry file, e.g., `index.ts` or `main.ts`.
-declare module 'typroof/plugin' {
-  interface ValidatorRegistry {
-    beFoo: BeFooValidator;
-  }
-}
-interface BeFooValidator extends Validator {
-  // Define the return type of your validator
-  return: IsNegated<this> extends false ?
-    Actual<this> extends 'foo' ?
-      true
-    : `Expect \`${Stringify<Actual<this>>}\` to be \`'foo'\`, but does not`
-  : Actual<this> extends 'foo' ? `Expect the type not to be \`'foo'\`, but does`
-  : false;
-}
-
-// In your `typroof.config.ts`
-import { defineConfig } from 'typroof/config';
-
-import type { Plugin } from 'typroof/plugin';
-
-// It is recommended to define the plugin as a factory function
-const foo = (): Plugin => ({
-  // `name` is required, and recommended to be named as `typroof-plugin-*`
-  name: 'typroof-plugin-example',
-  analyzers: {
-    // Just like what you have seen in `registerAnalyzer`
-    beFoo: (actual, _expected, { not, typeChecker }) => {
-      const actualText = `\x1b[1m${actual.text}\x1b[22m`; // Bold the text with ANSI escape codes
-      const expectedType = `\x1b[1m"foo"\x1b[22m`;
-      const actualType = `\x1b[1m{typeChecker.typeToString(actual.type)}\x1b[22m`;
-
-      throw (
-        `Expect ${actualText} ${not ? 'not ' : ''}to be ${expectedType}, ` +
-        `but got ${actualType}.`
-      );
-    },
-  },
-});
-
-export default defineConfig({
-  plugins: [foo()],
-});
-```
+The exported `Stringify` utility type is used to convert a type to a literal string type, which is used as the error message. The implementation of `Stringify` is quite complex, and it is recommended to use it instead of implementing your own.
 
 > [!TIP]
 >
@@ -512,6 +537,138 @@ export default defineConfig({
 > - A custom type-level function (HKT) that returns a boolean type. See the documentation of [hkt-core](https://github.com/Snowflyt/hkt-core) for more information.
 >
 > Custom serializers also boost `Stringify` utility’s speed in computing results, which can prevent Typroof from slowing down or crashing when handling complex types.
+
+### Deep Dive: Advanced Example - `error` Matcher
+
+Up to now, we have seen how to create a type-level only matcher. But what if we want to create a matcher that requires runtime analysis?
+
+`error` matcher checks if a type emits an error with TypeScript compiler API. It is a good example to show how to create a matcher that requires runtime analysis.
+
+Let’s take a look at how `error` is implemented:
+
+```typescript
+import { match } from 'typroof/plugin';
+
+import type { ToAnalyze } from 'typroof/plugin';
+
+export const error = match<'error'>();
+
+declare module 'typroof/plugin' {
+  interface ValidatorRegistry {
+    error: ErrorValidator;
+  }
+}
+interface ErrorValidator {
+  return: ToAnalyze<never>;
+}
+
+export const errorPlugin = (): Plugin => ({
+  name: 'typroof-plugin-error',
+  analyzers: {
+    error: (actual, _expected, { diagnostics, not, sourceFile, statement }) => {
+      // Check if a diagnostic error exists for this node
+      const diagnostic = diagnostics.find((diagnostic) => {
+        const start = diagnostic.start;
+        if (start === undefined) return false;
+
+        const length = diagnostic.length;
+        if (length === undefined) return false;
+
+        const end = start + length;
+        const nodeStart = actual.node.getStart(sourceFile);
+        const nodeEnd = actual.node.getEnd();
+
+        return start >= nodeStart && end <= nodeEnd;
+      });
+
+      // Find @ts-expect-error comments that apply to this expression
+      const findTSExpectError = () => {
+        const sourceText = sourceFile.text;
+
+        // 1. Check for leading comments directly before the statement
+        const leadingComments =
+          ts.getLeadingCommentRanges(sourceText, statement.getFullStart()) || [];
+
+        // 2. Find any internal comments within the statement’s full text range
+        // This helps with multi-line expressions that have inline comments
+        const statementStart = statement.getFullStart();
+        const statementEnd = statement.getEnd();
+        const statementText = sourceText.substring(statementStart, statementEnd);
+
+        // Track all potential comment positions
+        const commentPositions: { start: number; end: number }[] = [
+          ...leadingComments.map((c) => ({ start: c.pos, end: c.end })),
+        ];
+
+        // Scan the statement for possible comment starts
+        let pos = 0;
+        while (pos < statementText.length) {
+          // Look for // comments
+          if (statementText.substring(pos, pos + 2) === '//') {
+            const startPos = statementStart + pos;
+            let endPos = statementText.indexOf('\n', pos);
+            if (endPos === -1) endPos = statementText.length;
+            commentPositions.push({
+              start: startPos,
+              end: statementStart + endPos,
+            });
+            pos = endPos + 1;
+            continue;
+          }
+
+          // Look for /* */ comments
+          if (statementText.substring(pos, pos + 2) === '/*') {
+            const startPos = statementStart + pos;
+            const endPos = statementText.indexOf('*/', pos);
+            if (endPos !== -1) {
+              commentPositions.push({
+                start: startPos,
+                end: statementStart + endPos + 2,
+              });
+              pos = endPos + 2;
+              continue;
+            }
+          }
+
+          pos++;
+        }
+
+        // Check all comment positions for @ts-expect-error
+        for (const { end, start } of commentPositions) {
+          const commentText = sourceText.substring(start, end);
+          if (commentText.includes('@ts-expect-error')) {
+            // Ensure this @ts-expect-error is not already used by checking
+            // if there’s a diagnostic that starts at this exact position
+            const isUnused = !diagnostics.some(
+              (d) => d.start === start && d.code === 2578, // TypeScript’s code for @ts-expect-error
+            );
+            if (isUnused) return true;
+          }
+        }
+
+        return false;
+      };
+
+      // Check if error is triggered either by diagnostic or @ts-expect-error
+      const triggeredError = !!diagnostic || findTSExpectError();
+
+      if (not ? triggeredError : !triggeredError) {
+        const actualText = bold(actual.text);
+        throw (
+          `Expect ${actualText} ${not ? 'not ' : ''}to trigger error, ` +
+          `but ${not ? 'did' : 'did not'}.`
+        );
+      }
+    },
+  },
+});
+```
+
+The `error` matcher returns `ToAnalyze<never>` as the return type of its validator, which means it requires runtime analysis. In the `error` example, the type-level validation step is omitted, so we simply pass `ToAnalyze<never>`. However, if you want to create a matcher that requires both type-level validation and runtime analysis, you can return `ToAnalyze<ValidatorReturnType>` as the return type of your validator—the validation result type can be accessed via `validationResult` in the 3rd argument of the analyzer.
+
+You can still return booleans or strings as the return type of your validator in combination with `ToAnalyze<ValidatorReturnType>`, where the boolean or string indicates an early exit of the type-level validation step, and `validationResult` will be `undefined` in the analyzer if `false` or string is returned from the validator.
+
+### Publishing a Plugin
 
 If you want to publish your plugin as a library, it is recommended to export the factory function to create the plugin object as the default export, and export the matchers as named exports:
 
@@ -555,3 +712,5 @@ test('foo', () => {
   expect<'foo'>().to(beFoo);
 });
 ```
+
+You can try a live demo of creating a plugin [here](https://githubbox.com/Snowflyt/typroof/tree/main/examples/simple-plugin).
