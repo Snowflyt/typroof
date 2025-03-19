@@ -7,10 +7,10 @@ export const foo = (): Plugin => ({
   name: 'typroof-plugin-example',
   analyzers: {
     // Just like what you have seen in `registerAnalyzer`
-    beFoo: (actual, _expected, { not }) => {
+    beFoo: (actual, _expected, { not, typeChecker }) => {
       const actualText = bold(actual.text);
       const expectedType = bold('"foo"');
-      const actualType = bold(actual.type.getText());
+      const actualType = bold(typeChecker.typeToString(actual.type));
 
       throw (
         `Expect ${actualText} ${not ? 'not ' : ''}to be ${expectedType}, ` +
