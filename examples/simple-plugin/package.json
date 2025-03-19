@@ -1,6 +1,6 @@
 {
   "name": "typroof-plugin-simple-example",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "A simple example of a Typroof plugin",
   "license": "MIT",
@@ -19,7 +19,7 @@
     "test-types": "typroof"
   },
   "dependencies": {
-    "typroof": "^0.5.0"
+    "typroof": "^0.5.1"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
