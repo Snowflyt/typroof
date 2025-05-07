@@ -29,7 +29,7 @@
   },
   "scripts": {
     "prebuild": "npm run clean",
-    "build": "npm run test-types && npm run test && tsc -p tsconfig.build.json && tsc-alias --resolve-full-paths -p tsconfig.build.json && rimraf -g \"dist/tools/**/*.{js,d.ts.map}\" && replace-in-file \"/^\\/\\/# sourceMappingURL=.+$/mg\" \"\" \"dist/tools/**/*.d.ts\" --isRegex && replace-in-file \"/^\\s*\\/\\/ eslint-disable-next-line .+$/mg\" \"\" \"dist/**/*.js\" --isRegex && prettier --log-level=silent --print-width 80 --write \"dist/**/*.{js,d.ts}\" --ignore-path !dist && cpy package.json dist && json -I -f dist/package.json -e \"delete this.private; delete this.scripts; delete this.devDependencies\" && cpy LICENSE dist && cpy README.md dist",
+    "build": "npm run test-types && npm run test && tsc -p tsconfig.build.json && tsc-alias --resolve-full-paths -p tsconfig.build.json && rimraf -g \"dist/tools/**/*.{js,d.ts.map}\" && replace-in-file \"/^\\/\\/# sourceMappingURL=.+$/mg\" \"\" \"dist/tools/**/*.d.ts\" --isRegex && replace-in-file \"/^\\s*\\/\\/ eslint-disable-next-line .+$/mg\" \"\" \"dist/**/*.js\" --isRegex && prettier --log-level=silent --print-width 80 --write \"dist/**/*.{js,d.ts}\" --ignore-path !dist && node -e \"import fs from 'node:fs'; fs.cpSync('package.json', 'dist/package.json')\" && json -I -f dist/package.json -e \"delete this.private; delete this.scripts; delete this.devDependencies\" && node -e \"import fs from 'node:fs'; ['LICENSE', 'README.md'].forEach((name) => fs.cpSync(name, 'dist/' + name))\"",
     "clean": "rimraf dist",
     "format": "prettier --no-error-on-unmatched-pattern --write {src,test}/**/*.{js,ts,json} *.{js,cjs,mjs,ts,cts,mts,json,md}",
     "lint": "eslint {src,test}/**/*.{js,ts} *.{js,cjs,mjs,ts,cts,mts} --no-error-on-unmatched-pattern --report-unused-disable-directives-severity error --max-warnings 0",
@@ -56,7 +56,6 @@
     "@typescript-eslint/parser": "^8.26.1",
     "@vitest/coverage-v8": "^3.0.9",
     "@vitest/ui": "^3.0.9",
-    "cpy-cli": "^5.0.0",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-import-resolver-typescript": "^4.2.2",
