@@ -6,8 +6,5 @@
     "outDir": "dist"
   },
   "include": ["src"],
-  "exclude": ["src/**/*.spec.ts", "src/**/*.proof.ts"],
-  "tsc-alias": {
-    "resolveFullPaths": true
-  }
+  "exclude": ["src/**/*.spec.ts", "src/**/*.proof.ts"]
 }
