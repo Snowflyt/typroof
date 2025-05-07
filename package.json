@@ -28,9 +28,8 @@
     "typroof": "./cli.js"
   },
   "scripts": {
-    "prebuild": "npm run clean",
-    "build": "npm run test-types && npm run test && tsc -p tsconfig.build.json && tsc-alias --resolve-full-paths -p tsconfig.build.json && rimraf -g \"dist/tools/**/*.{js,d.ts.map}\" && replace-in-file \"/^\\/\\/# sourceMappingURL=.+$/mg\" \"\" \"dist/tools/**/*.d.ts\" --isRegex && replace-in-file \"/^\\s*\\/\\/ eslint-disable-next-line .+$/mg\" \"\" \"dist/**/*.js\" --isRegex && prettier --log-level=silent --print-width 80 --write \"dist/**/*.{js,d.ts}\" --ignore-path !dist && node -e \"import fs from 'node:fs'; fs.cpSync('package.json', 'dist/package.json')\" && json -I -f dist/package.json -e \"delete this.private; delete this.scripts; delete this.devDependencies\" && node -e \"import fs from 'node:fs'; ['LICENSE', 'README.md'].forEach((name) => fs.cpSync(name, 'dist/' + name))\"",
-    "clean": "rimraf dist",
+    "build": "rimraf dist && npm run test-types && npm run test && npm run compile && node -e \"import fs from 'node:fs'; fs.cpSync('package.json', 'dist/package.json')\" && json -I -f dist/package.json -e \"delete this.private; delete this.scripts; delete this.devDependencies\" && node -e \"import fs from 'node:fs'; ['LICENSE', 'README.md'].forEach((name) => fs.cpSync(name, 'dist/' + name))\"",
+    "compile": "tsc --emitDeclarationOnly -p tsconfig.build.json && node -e \"import fs from 'node:fs'; fs.cpSync('src', 'dist', { recursive: true })\" && rimraf dist/tools && node -e \"import fs from 'node:fs'; fs.readdirSync('src/tools', { recursive: true }).forEach((file) => { if (file.endsWith('ts') && !file.endsWith('.d.ts') && !file.endsWith('.proof.ts')) fs.cpSync('src/tools/' + file, 'dist/tools/' + file.slice(0, -3) + '.d.ts'); })\" && node -e \"import path from 'node:path'; import fs from 'node:fs'; import tsBlankSpace from 'ts-blank-space'; fs.readdirSync('dist', { recursive: true }).map((file) => path.join('dist', file)).filter((file) => file.endsWith('.ts') && !file.endsWith('.d.ts') && fs.statSync(file).isFile()).forEach((file) => { fs.writeFileSync(file.substring(0, file.lastIndexOf('.')) + '.js', tsBlankSpace(fs.readFileSync(file, 'utf-8'))); fs.rmSync(file); })\" && tsc-alias --resolve-full-paths -p tsconfig.build.json && node -e \"import { replaceInFileSync } from 'replace-in-file'; [/ *\\/\\/ eslint-disable-next-line [^\\n]+\\n/g, / *\\/\\* eslint-(disable|enable) [^\\n]+ \\*\\/\\n/g, /^\\s*\\/\\/ @ts-.+$/gm].forEach((regex) => replaceInFileSync({ files: 'dist/**/*.{js,ts}', from: regex, to: '' }))\" && prettier --log-level=silent --print-width 80 --write \"dist/**/*\" --ignore-path \"!dist/**/*\" && node -e \"import { replaceInFileSync } from 'replace-in-file'; replaceInFileSync({ files: 'dist/**/*.js', from: /^ *\\*\\/\\n\\n/gm, to: '*/\\n' }); for (let i = 0; i < 10; i++) replaceInFileSync({ files: 'dist/**/*.js', from: /^ *\\/\\*\\*\\n(( \\*( [^\\n]*)?\\n)+) *\\*\\/\\n( *\\/)/gm, to: '$4' })\" && prettier --log-level=silent --print-width 80 --write \"dist/**/*\" --ignore-path \"!dist/**/*\"",
     "format": "prettier --no-error-on-unmatched-pattern --write {src,test}/**/*.{js,ts,json} *.{js,cjs,mjs,ts,cts,mts,json,md}",
     "lint": "eslint {src,test}/**/*.{js,ts} *.{js,cjs,mjs,ts,cts,mts} --no-error-on-unmatched-pattern --report-unused-disable-directives-severity error --max-warnings 0",
     "lint:fix": "eslint --fix {src,test}/**/*.{js,ts} *.{js,cjs,mjs,ts,cts,mts} --no-error-on-unmatched-pattern --report-unused-disable-directives-severity error --max-warnings 0",
@@ -70,6 +69,7 @@
     "prettier-plugin-packagejson": "^2.5.10",
     "replace-in-file": "^8.3.0",
     "rimraf": "^6.0.1",
+    "ts-blank-space": "^0.6.1",
     "tsc-alias": "^1.8.11",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",

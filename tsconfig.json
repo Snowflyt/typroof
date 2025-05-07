@@ -24,7 +24,6 @@
 
     /* Type */
     "declaration": true,
-    "declarationMap": true,
 
     /* Path aliases */
     "baseUrl": ".",
