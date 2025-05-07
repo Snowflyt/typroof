@@ -1,6 +1,6 @@
 {
   "name": "typroof",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "private": true,
   "description": "TypeScript type testing with a fast CLI tool and a smooth WYSIWYG editor experience.",
   "keywords": [
