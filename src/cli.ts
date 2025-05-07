@@ -21,6 +21,7 @@ const cli = meow(
   Options
     --files      -f  Glob of files to test         [Default: '/path/proof/**/*.{ts,tsx}' or '/**/*.proof.{ts,tsx}']
     --config     -c  Path to a typroof config file [Default: '/path/typroof.config.{ts,mts,cts,js,mjs,cjs}']
+    --project    -p  Path to a tsconfig file to use for the project [Default: '/path/tsconfig.json']
 
   Examples
     $ typroof /path/to/project
@@ -34,9 +35,9 @@ const cli = meow(
       ❯ proof/string-utils.ts (2)
         ✓ Append
         ❯ Prepend (1)
-          ✘ should prepend a string to another
+          × should prepend a string to another
             × 12:12 Expect Prepend<'foo', 'bar'> to equal "foobar", but got "barfoo".
-      
+
        Test Files  1 failed (1)
             Tests  1 failed | 1 passed (2)
          Start at  16:47:54
@@ -53,18 +54,22 @@ const cli = meow(
         type: 'string',
         shortFlag: 'c',
       },
+      project: {
+        type: 'string',
+        shortFlag: 'p',
+      },
     },
     importMeta: import.meta,
   },
 );
 
 const cwd = cli.input.length > 0 ? cli.input[0]! : process.cwd();
-const { config: configPath, files: testFiles } = cli.flags;
+const { config: configPath, files: testFiles, project: tsConfigFilePath } = cli.flags;
 
 registerBuiltinAnalyzers();
 
 const project = createTyproofProject({
-  tsConfigFilePath: path.join(cwd, 'tsconfig.json'),
+  tsConfigFilePath: tsConfigFilePath || path.join(cwd, 'tsconfig.json'),
   ...(await loadConfig({ cwd, configPath })),
   ...(testFiles && testFiles.length > 0 && { testFiles }),
 });
