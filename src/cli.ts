@@ -22,6 +22,8 @@ const cli = meow(
     --files      -f  Glob of files to test         [Default: '/path/proof/**/*.{ts,tsx}' or '/**/*.proof.{ts,tsx}']
     --config     -c  Path to a typroof config file [Default: '/path/typroof.config.{ts,mts,cts,js,mjs,cjs}']
     --project    -p  Path to a tsconfig file to use for the project [Default: '/path/tsconfig.json']
+    --check          Perform a type check on test files before running tests [Default: false]
+    --check-files    Include files to type check   [Default: all test files]
 
   Examples
     $ typroof /path/to/project
@@ -58,6 +60,14 @@ const cli = meow(
         type: 'string',
         shortFlag: 'p',
       },
+      check: {
+        type: 'boolean',
+        default: false,
+      },
+      checkFiles: {
+        type: 'string',
+        isMultiple: true,
+      },
     },
     importMeta: import.meta,
   },
@@ -69,12 +79,24 @@ const { config: configPath, files: testFiles, project: tsConfigFilePath } = cli.
 registerBuiltinAnalyzers();
 
 const project = createTyproofProject({
-  tsConfigFilePath: tsConfigFilePath || path.join(cwd, 'tsconfig.json'),
+  tsConfigFilePath: path.join(cwd, 'tsconfig.json'),
   ...(await loadConfig({ cwd, configPath })),
   ...(testFiles && testFiles.length > 0 && { testFiles }),
+  ...(tsConfigFilePath && { tsConfigFilePath }),
+  ...(cli.flags.check && { check: true }),
+  ...(cli.flags.checkFiles &&
+    cli.flags.checkFiles.length > 0 && { checkFiles: cli.flags.checkFiles }),
 });
 
 const startedAt = new Date();
+let hasErrors = false;
+project.checkFiles.forEach((file) => {
+  const messages = project.performTypeCheck(file);
+  messages.forEach((message) => console.log(message));
+  if (messages.length > 0) hasErrors = true;
+});
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+if (hasErrors) process.exit(1);
 const results = project.testFiles.map(project.checkTestFile);
 const finishedAt = new Date();
 

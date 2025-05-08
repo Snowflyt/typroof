@@ -100,6 +100,14 @@ Success! You’ve written and verified your first type test with Typroof. 🎉
    Duration  2ms
 ```
 
+> [!NOTE]
+>
+> By default, Typroof does not perform type checking on test files. This allows matchers like `.to(error)` to work properly without requiring manual `@ts-expect-error` comments. If you want to enable type checking on your test files, you can use the `--check` option when running Typroof:
+>
+> ```shell
+> npx typroof --check
+> ```
+
 ## Usage
 
 After getting started with Typroof, let’s explore its core concepts and patterns in more depth.
@@ -303,12 +311,14 @@ You can use either `.ts`, `.mts`, `.cts`, `.js`, `.mjs` or `.cjs` as the extensi
 
 ### Available Options
 
-| Option             | Type                                | Default                                          | Description                                                               |
-| ------------------ | ----------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------- |
-| `tsConfigFilePath` | `string`                            | `'./tsconfig.json'`                              | Path to the TypeScript configuration file                                 |
-| `testFiles`        | <code>string &#124; string[]</code> | `['**/*.proof.{ts,tsx}', 'proof/**/*.{ts,tsx}']` | Glob pattern(s) for test files                                            |
-| `compilerOptions`  | `ts.CompilerOptions`                | `{}`                                             | Additional TypeScript compiler options to override those in tsconfig.json |
-| `plugins`          | `Plugin[]`                          | `[]`                                             | Typroof plugins that extend functionality                                 |
+| Option             | Type                                | Default                                          | Description                                                                         |
+| ------------------ | ----------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `tsConfigFilePath` | `string`                            | `'./tsconfig.json'`                              | Path to the TypeScript configuration file                                           |
+| `testFiles`        | <code>string &#124; string[]</code> | `['**/*.proof.{ts,tsx}', 'proof/**/*.{ts,tsx}']` | Glob pattern(s) for test files                                                      |
+| `check`            | `boolean`                           | `false`                                          | Enable type checking on test files                                                  |
+| `checkFiles`       | <code>string &#124; string[]</code> | Same as `testFiles`                              | Glob pattern(s) for files to check. This option is only used when `check` is `true` |
+| `compilerOptions`  | `ts.CompilerOptions`                | `{}`                                             | Additional TypeScript compiler options to override those in tsconfig.json           |
+| `plugins`          | `Plugin[]`                          | `[]`                                             | Typroof plugins that extend functionality                                           |
 
 ### Import Notice
 
@@ -336,6 +346,9 @@ npx typroof --files "src/**/*.proof.ts"
 # Use custom config file
 npx typroof --config ./typroof.config.ts
 
+# Use custom tsconfig.json and enable type checking
+npx typroof --check --project ./tsconfig.test.json
+
 # Get help
 npx typroof --help
 ```
@@ -344,6 +357,9 @@ Available options:
 
 - `--files, -f`: Glob pattern(s) for test files.
 - `--config, -c`: Path to config file.
+- `--project, -p`: Path to tsconfig.json file.
+- `--check`: Enable type checking on test files.
+- `--check-files`: Glob pattern(s) for files to check. This option is only used when `--check` is enabled.
 - `--help`: Show help information.
 - `--version`: Show version information.
 

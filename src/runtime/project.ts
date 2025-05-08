@@ -4,6 +4,7 @@ import { globSync } from 'tinyglobby';
 import * as ts from 'typescript';
 
 import { getExpectSymbol } from '../assertions/assert';
+import { blue, cyan, gray, green, red, yellow } from '../utils/colors';
 
 import { analyzeTestFile } from './analyze';
 import type { CheckResult } from './check';
@@ -18,6 +19,7 @@ export interface TyproofProject {
   readonly program: ts.Program;
   readonly typeChecker: ts.TypeChecker;
   readonly testFiles: readonly ts.SourceFile[];
+  readonly checkFiles: readonly ts.SourceFile[];
   readonly diagnostics: readonly ts.Diagnostic[];
 
   // Symbol getters
@@ -27,6 +29,7 @@ export interface TyproofProject {
   readonly getTestSymbol: () => ts.Symbol;
 
   // Testing functionality
+  readonly performTypeCheck: (file: ts.SourceFile) => readonly string[];
   readonly checkTestFile: (file: ts.SourceFile) => CheckResult;
 }
 
@@ -46,6 +49,18 @@ export interface TyproofProjectOptions {
    */
   /* eslint-enable no-irregular-whitespace */
   testFiles?: string | readonly string[];
+  /**
+   * Whether to perform a type check on the test files before running tests.
+   * @default false
+   */
+  check?: boolean;
+  /* eslint-disable no-irregular-whitespace */
+  /**
+   * File glob or globs to check for type errors.
+   * @default ['**​/*.proof.{ts,tsx}', 'proof/**​/*.{ts,tsx}']
+   */
+  /* eslint-enable no-irregular-whitespace */
+  checkFiles?: string | readonly string[];
   /**
    * Additional compiler options to override those in tsconfig.json.
    */
@@ -78,6 +93,8 @@ export interface TyproofProjectOptions {
  */
 export function createTyproofProject(options?: TyproofProjectOptions): TyproofProject {
   const {
+    check = false,
+    checkFiles: checkFilesGlob,
     compilerOptions = {},
     testFiles: testFileGlobs = ['**/*.proof.{ts,tsx}', 'proof/**/*.{ts,tsx}'],
     tsConfigFilePath = path.join(process.cwd(), 'tsconfig.json'),
@@ -102,14 +119,29 @@ export function createTyproofProject(options?: TyproofProjectOptions): TyproofPr
     globSync(pattern, { ignore: 'node_modules/**' }),
   );
 
+  let checkFilePaths: readonly string[] = [];
+  if (check) {
+    checkFilePaths = testFilePaths;
+    if (checkFilesGlob && checkFilesGlob.length > 0)
+      checkFilePaths = globSync(checkFilesGlob as string | string[], {
+        ignore: 'node_modules/**',
+      });
+  }
+
   // Create program
-  const program = ts.createProgram(testFilePaths, parsedConfig.options);
+  const program = ts.createProgram(
+    [...new Set(testFilePaths.concat(checkFilePaths))],
+    parsedConfig.options,
+  );
 
   const typeChecker = program.getTypeChecker();
   const diagnostics = ts.getPreEmitDiagnostics(program);
   const testFiles = program
     .getSourceFiles()
     .filter((file) => testFilePaths.includes(file.fileName));
+  const checkFiles = program
+    .getSourceFiles()
+    .filter((file) => checkFilePaths.includes(file.fileName));
 
   // Get symbols
   const expectSymbol = getExpectSymbol({ program, typeChecker });
@@ -123,6 +155,7 @@ export function createTyproofProject(options?: TyproofProjectOptions): TyproofPr
     program,
     typeChecker,
     testFiles,
+    checkFiles,
     diagnostics,
 
     getExpectSymbol: () => expectSymbol,
@@ -130,8 +163,31 @@ export function createTyproofProject(options?: TyproofProjectOptions): TyproofPr
     getItSymbol: () => itSymbol,
     getTestSymbol: () => testSymbol,
 
-    checkTestFile: (file: ts.SourceFile): CheckResult =>
-      checkAnalyzeResult(analyzeTestFile(project, file)),
+    performTypeCheck: (file) => {
+      const messages: string[] = [];
+      for (const diagnostic of ts.getPreEmitDiagnostics(program, file))
+        if (diagnostic.file) {
+          const { character, line } = ts.getLineAndCharacterOfPosition(
+            diagnostic.file,
+            diagnostic.start!,
+          );
+          const message =
+            `${cyan(diagnostic.file.fileName)}:${yellow(String(line + 1))}:${yellow(String(character + 1))} - ` +
+            `${
+              diagnostic.category === ts.DiagnosticCategory.Error ? red('error')
+              : diagnostic.category === ts.DiagnosticCategory.Warning ? yellow('warning')
+              : diagnostic.category === ts.DiagnosticCategory.Suggestion ? blue('suggestion')
+              : green('message')
+            } ` +
+            `${gray('TS' + diagnostic.code)}: ` +
+            ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+          messages.push(message);
+        } else {
+          messages.push(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
+        }
+      return messages;
+    },
+    checkTestFile: (file) => checkAnalyzeResult(analyzeTestFile(project, file)),
   };
 
   return project;
