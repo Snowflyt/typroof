@@ -165,7 +165,10 @@ export function createTyproofProject(options?: TyproofProjectOptions): TyproofPr
 
     performTypeCheck: (file) => {
       const messages: string[] = [];
-      for (const diagnostic of ts.getPreEmitDiagnostics(program, file))
+      for (const diagnostic of ts.getPreEmitDiagnostics(program, file)) {
+        // For compatibility with composite projects
+        if (diagnostic.code === 6307) continue; // Ignore TS6307: File is not listed in the project
+
         if (diagnostic.file) {
           const { character, line } = ts.getLineAndCharacterOfPosition(
             diagnostic.file,
@@ -185,6 +188,7 @@ export function createTyproofProject(options?: TyproofProjectOptions): TyproofPr
         } else {
           messages.push(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
         }
+      }
       return messages;
     },
     checkTestFile: (file) => checkAnalyzeResult(analyzeTestFile(project, file)),
