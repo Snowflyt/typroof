@@ -26,9 +26,8 @@
     "declaration": true,
 
     /* Path aliases */
-    "baseUrl": ".",
     "paths": {
-      "typroof": ["src"]
+      "typroof": ["./src"]
     }
   },
   "include": ["src", "test"]
