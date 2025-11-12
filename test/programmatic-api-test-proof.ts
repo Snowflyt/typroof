@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { describe, equal, error, expect, extend, it, test } from 'typroof';
 
 type Append<S extends string, Ext extends string> = `${S}${Ext}`;

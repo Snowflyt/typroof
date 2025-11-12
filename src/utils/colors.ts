@@ -15,6 +15,7 @@ const format = (open: number, close: number): ((input: string) => string) => {
   const closeCode = `\u001B[${close}m`;
 
   return (input) => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion
     const string = input + '';
     let index = string.indexOf(closeCode);
 
