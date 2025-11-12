@@ -11,6 +11,15 @@ import { getExportedSymbols } from './ts-utils';
 export function describe(name: string, fn: () => void | Promise<void>) {}
 
 /**
+ * Alias for `describe`.
+ *
+ * @see {@link describe}
+ */
+export function suite(name: string, fn: () => void | Promise<void>) {
+  describe(name, fn);
+}
+
+/**
  * Create a test case.
  */
 export function test(name: string, fn: () => void | Promise<void>) {}
@@ -47,5 +56,5 @@ export const getTestSymbols = ({
     program,
     typeChecker,
     modulePath: currentFilePathName,
-    symbolNames: ['describe', 'it', 'test'],
+    symbolNames: ['describe', 'suite', 'test', 'it'],
   });

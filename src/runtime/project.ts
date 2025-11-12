@@ -25,8 +25,9 @@ export interface TyproofProject {
   // Symbol getters
   readonly getExpectSymbol: () => ts.Symbol;
   readonly getDescribeSymbol: () => ts.Symbol;
-  readonly getItSymbol: () => ts.Symbol;
+  readonly getSuiteSymbol: () => ts.Symbol;
   readonly getTestSymbol: () => ts.Symbol;
+  readonly getItSymbol: () => ts.Symbol;
 
   // Testing functionality
   readonly performTypeCheck: (file: ts.SourceFile) => readonly string[];
@@ -148,6 +149,7 @@ export function createTyproofProject(options?: TyproofProjectOptions): TyproofPr
   const {
     describe: describeSymbol,
     it: itSymbol,
+    suite: suiteSymbol,
     test: testSymbol,
   } = getTestSymbols({ program, typeChecker });
 
@@ -160,8 +162,9 @@ export function createTyproofProject(options?: TyproofProjectOptions): TyproofPr
 
     getExpectSymbol: () => expectSymbol,
     getDescribeSymbol: () => describeSymbol,
-    getItSymbol: () => itSymbol,
+    getSuiteSymbol: () => suiteSymbol,
     getTestSymbol: () => testSymbol,
+    getItSymbol: () => itSymbol,
 
     performTypeCheck: (file) => {
       const messages: string[] = [];

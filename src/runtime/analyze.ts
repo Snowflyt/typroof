@@ -37,8 +37,9 @@ export const analyzeTestFile = (project: TyproofProject, file: ts.SourceFile): A
   const { typeChecker } = project;
   const expectSymbol = project.getExpectSymbol();
   const describeSymbol = project.getDescribeSymbol();
-  const itSymbol = project.getItSymbol();
+  const suiteSymbol = project.getSuiteSymbol();
   const testSymbol = project.getTestSymbol();
+  const itSymbol = project.getItSymbol();
 
   const getPrettifiedPathName = (file: ts.SourceFile) => {
     const filePathName = path.relative(process.cwd(), file.fileName).replace(/\\/g, '/');
@@ -64,18 +65,17 @@ export const analyzeTestFile = (project: TyproofProject, file: ts.SourceFile): A
     isInvocationOf(typeChecker, node, Array.isArray(symbols) ? symbols : [symbols]);
 
   // Check if a node has an ancestor that is a call to a specific symbol
-  const hasAncestorCallTo = (node: ts.Node, symbol: ts.Symbol): boolean =>
-    getAncestors(node).some((ancestor) => isCallTo(ancestor, symbol));
+  const hasAncestorCallTo = (node: ts.Node, symbols: ts.Symbol | ts.Symbol[]): boolean =>
+    getAncestors(node).some((ancestor) => isCallTo(ancestor, symbols));
 
   // Find top level describe calls
   const topLevelDescribeCalls = allCalls
-    .filter((call) => isCallTo(call, describeSymbol))
-    .filter((call) => !hasAncestorCallTo(call, describeSymbol));
-
+    .filter((call) => isCallTo(call, [describeSymbol, suiteSymbol]))
+    .filter((call) => !hasAncestorCallTo(call, [describeSymbol, suiteSymbol]));
   // Find top level test calls
   const topLevelTestCalls = allCalls
     .filter((call) => isCallTo(call, [testSymbol, itSymbol]))
-    .filter((call) => !hasAncestorCallTo(call, describeSymbol));
+    .filter((call) => !hasAncestorCallTo(call, [describeSymbol, suiteSymbol]));
 
   // Combine and sort by position
   const topLevelDescribeOrTestCalls = [...topLevelDescribeCalls, ...topLevelTestCalls].sort(
@@ -91,12 +91,12 @@ export const analyzeTestFile = (project: TyproofProject, file: ts.SourceFile): A
       return descendantCalls.filter((call) => {
         const isTestOrIt = isCallTo(call, [testSymbol, itSymbol]);
         const isNestedDescribe =
-          isCallTo(call, describeSymbol) &&
-          getAncestors(call).find((a) => isCallTo(a, describeSymbol)) === describe;
+          isCallTo(call, [describeSymbol, suiteSymbol]) &&
+          getAncestors(call).find((a) => isCallTo(a, [describeSymbol, suiteSymbol])) === describe;
 
         return (
           (isTestOrIt || isNestedDescribe) &&
-          getAncestors(call).find((a) => isCallTo(a, describeSymbol)) === describe
+          getAncestors(call).find((a) => isCallTo(a, [describeSymbol, suiteSymbol])) === describe
         );
       });
     };
@@ -117,7 +117,7 @@ export const analyzeTestFile = (project: TyproofProject, file: ts.SourceFile): A
     };
 
     for (const call of calls) {
-      if (isCallTo(call, describeSymbol)) {
+      if (isCallTo(call, [describeSymbol, suiteSymbol])) {
         const description = getDescribeOrTestCallDescription(call);
         const subGroup: Group = { description, children: [] };
         extractAssertions(subGroup, getChildDescribeOrTestCalls(call));
