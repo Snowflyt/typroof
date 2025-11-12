@@ -456,7 +456,7 @@ export const startsWith = (): Plugin => ({
   name: 'typroof-plugin-starts-with',
   analyzers: {
     // `actual` and `expected` are the types passed to the matcher (T and U).
-    startsWith: (actual, expected, { not, typeChecker }) => {
+    startsWith: (actual, expected, { not, ts, typeChecker }) => {
       // NOTE: This analyzer is only called when the type-level validation fails
       // We use TypeScript compiler API to get the text of the type:
       const actualType = typeChecker.typeToString(actual.type);

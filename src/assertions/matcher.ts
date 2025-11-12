@@ -56,6 +56,10 @@ export interface AnalyzerMeta {
    */
   project: TyproofProject;
   /**
+   * The TypeScript namespace.
+   */
+  ts: typeof ts;
+  /**
    * The TypeScript program of the project.
    */
   program: ts.Program;

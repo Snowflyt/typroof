@@ -100,6 +100,7 @@ export const checkAnalyzeResult = ({
             diagnostics,
             not,
             project,
+            ts,
             program: project.program,
             typeChecker,
             sourceFile,
