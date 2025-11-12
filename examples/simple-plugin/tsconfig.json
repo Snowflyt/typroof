@@ -23,8 +23,7 @@
     "noUncheckedIndexedAccess": true,
 
     /* Type */
-    "declaration": true,
-    "declarationMap": true
+    "declaration": true
   },
   "include": ["src", "proof"]
 }
