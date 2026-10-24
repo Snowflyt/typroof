@@ -36,6 +36,7 @@
     "prepare": "node -e \"import fs from 'fs'; import path from 'path'; const hooksDir = path.join(process.cwd(), '.githooks'); const gitHooksDir = path.join(process.cwd(), '.git/hooks'); if (!fs.existsSync(gitHooksDir)) { console.error('Git hooks directory not found, please run this in a git repository.'); process.exit(1); } fs.readdirSync(hooksDir).forEach(file => { const srcFile = path.join(hooksDir, file); const destFile = path.join(gitHooksDir, file); fs.copyFileSync(srcFile, destFile); if (process.platform !== 'win32' && !file.endsWith('.cmd')) { fs.chmodSync(destFile, 0o755); } })\"",
     "test": "vitest run",
     "test-types": "tsx src/cli.ts",
+    "test:compiler-compat": "node test/compiler-compat.integration.mjs",
     "test:cov": "vitest run --coverage",
     "test:ui": "vitest --ui --coverage.enabled=true",
     "test:watch": "vitest",
@@ -46,8 +47,7 @@
     "esbuild": "^0.27.0",
     "get-tsconfig": "^4.13.0",
     "meow": "^14.0.0",
-    "tinyglobby": "^0.2.15",
-    "typescript": "4.x || 5.x"
+    "tinyglobby": "^0.2.15"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
@@ -75,6 +75,9 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.4",
     "vitest": "^4.0.8"
+  },
+  "peerDependencies": {
+    "typescript": "4.x || 5.x || 6.x"
   },
   "engines": {
     "node": ">=20.0.0"

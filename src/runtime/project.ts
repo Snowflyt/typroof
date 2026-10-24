@@ -93,6 +93,15 @@ export interface TyproofProjectOptions {
  * ```
  */
 export function createTyproofProject(options?: TyproofProjectOptions): TyproofProject {
+  if (typeof ts.createProgram !== 'function') {
+    throw new Error(
+      'Typroof requires the TypeScript JavaScript Compiler API. The selected ' +
+        '`typescript` package does not expose createProgram (TypeScript 7.0 ' +
+        'has no public compiler API). Install TypeScript 6 as `typescript` ' +
+        'and use an alias for the TypeScript 7 CLI.',
+    );
+  }
+
   const {
     check = false,
     checkFiles: checkFilesGlob,
