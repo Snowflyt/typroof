@@ -12,8 +12,26 @@ https://github.com/user-attachments/assets/53aa8f97-c580-428e-89b2-2d07d1c5680d
 ## Installation
 
 ```shell
-npm install --save-dev typroof
+npm install --save-dev typroof typescript@^6
 ```
+
+### TypeScript compiler compatibility
+
+Typroof uses the JavaScript TypeScript Compiler API. Install a compatible
+`typescript` package in the consuming project: TypeScript 4.x, 5.x, or 6.x.
+The peer dependency declares this compatibility range. The compiler loaded
+by Typroof follows Node.js module resolution from the Typroof package.
+
+For native TypeScript 7 checking alongside Typroof, install the TypeScript 6
+compatibility package as `typescript` and the native compiler under an alias:
+
+```sh
+npm install -D typroof typescript@npm:@typescript/typescript6@^6.0.2 @typescript/native@npm:typescript@^7.0.2
+```
+
+In this setup, Typroof assertions and `--check` use the TypeScript 6 API.
+Use the native compiler separately to check TypeScript 7 behavior. A
+TypeScript 7.0-only installation lacks the JavaScript API Typroof requires.
 
 ## Quickstart
 
